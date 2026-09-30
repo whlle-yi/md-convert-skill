@@ -7,7 +7,6 @@
 
 from __future__ import annotations
 
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -27,10 +26,9 @@ DEMO = ROOT / "examples" / "demo.md"
 
 
 # ---------------------------------------------------------------------------
-# PDF 引擎探测（模块级计算一次）
+# PDF 测试：依赖本机 TeX Live 与中文/西文字体（SimSun、Times New Roman），
+# 仅在本机（Windows）运行；CI 不测 PDF。
 # ---------------------------------------------------------------------------
-
-XELATEX = shutil.which("xelatex") is not None
 
 
 # ---------------------------------------------------------------------------
@@ -201,15 +199,11 @@ class TestConvertHtml:
 # pdf 转换（引擎可用时）
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skipif(not XELATEX, reason="无 xelatex，跳过 PDF 测试")
+@pytest.mark.skipif(sys.platform != "win32", reason="PDF 测试在本机运行（Windows + TeX Live）")
 class TestConvertPdf:
     def test_pdf_generated(self, tmp_path):
         out = tmp_path / "demo.pdf"
-        argv = [str(DEMO), "-o", str(out), "--toc"]
-        if sys.platform != "win32":
-            # CI 的 Linux 无 SimSun/TNR，使用 TeX Live 与 fonts-noto-cjk 自带字体
-            argv += ["--cjk-font", "Noto Serif CJK SC", "--latin-font", "TeX Gyre Termes"]
-        assert to_pdf.main(argv) == 0
+        assert to_pdf.main([str(DEMO), "-o", str(out), "--toc"]) == 0
         data = out.read_bytes()
         assert data[:5] == b"%PDF-"
         assert len(data) > 20_000

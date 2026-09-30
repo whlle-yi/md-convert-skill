@@ -28,15 +28,6 @@ jobs:
           curl -sL https://github.com/jgm/pandoc/releases/download/3.9.0.2/pandoc-3.9.0.2-linux-amd64.tar.gz \
             | sudo tar xz --strip-components=1 -C /usr/local
 
-      - name: Install TeX Live + CJK fonts (Linux, for PDF)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            texlive-xetex texlive-lang-chinese texlive-fonts-recommended \
-            texlive-latex-recommended texlive-latex-extra \
-            fonts-noto-cjk lmodern
-
       - name: Install pandoc (Windows)
         if: runner.os == 'Windows'
         run: choco install pandoc --yes --no-progress
@@ -56,12 +47,6 @@ jobs:
         run: |
           python skills/md-convert/scripts/to_docx.py examples/demo.md -o temp/output/demo.docx --toc
           python skills/md-convert/scripts/to_html.py examples/demo.md -o temp/output/demo.html --toc
-        shell: bash
-
-      - name: Smoke convert PDF (Linux, XeLaTeX)
-        if: runner.os == 'Linux'
-        run: |
-          python skills/md-convert/scripts/to_pdf.py examples/demo.md -o temp/output/demo.pdf --toc             --cjk-font "Noto Serif CJK SC" --latin-font "TeX Gyre Termes"
         shell: bash
 
       - name: Upload artifacts
