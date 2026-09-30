@@ -36,13 +36,15 @@
 
 ### 安装为 ZCode 技能
 
+技能本体在仓库的 `skills/md-convert/` 子目录，整体复制或链接该目录即可：
+
 ```bash
 # 方式一：junction（推荐，随仓库更新）
 git clone https://github.com/whlle-yi/md-convert-skill.git D:/tools/md-convert-skill
-mklink /J "%USERPROFILE%\.agents\skills\md-convert" "D:\tools\md-convert-skill"
+mklink /J "%USERPROFILE%\.agents\skills\md-convert" "D:\tools\md-convert-skill\skills\md-convert"
 
 # 方式二：直接复制
-xcopy /E /I md-convert-skill "%USERPROFILE%\.agents\skills\md-convert"
+xcopy /E /I md-convert-skill\skills\md-convert "%USERPROFILE%\.agents\skills\md-convert"
 ```
 
 安装后在 ZCode 中说"把这个 md 转成 word"即可自动触发；也可 `/md-convert` 显式调用。
@@ -53,17 +55,17 @@ xcopy /E /I md-convert-skill "%USERPROFILE%\.agents\skills\md-convert"
 pip install python-docx
 
 # 转 Word：宋体 + TNR、Heavy 强调、三线表、首行缩进，全部默认生效
-python scripts/md_convert.py demo.md -o demo.docx
+python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.docx
 
 # 加目录、标题编号
-python scripts/md_convert.py demo.md -o demo.docx --toc --number-sections
+python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.docx --toc --number-sections
 
 # 转 PDF（Windows 自动用 Word 引擎；学术公式用 --pdf-engine latex）
-python scripts/md_convert.py demo.md -o demo.pdf
-python scripts/md_convert.py paper.md -o paper.pdf --pdf-engine latex
+python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.pdf
+python skills/md-convert/scripts/md_convert.py paper.md -o paper.pdf --pdf-engine latex
 
 # 转独立 HTML
-python scripts/md_convert.py demo.md -o demo.html --toc
+python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.html --toc
 ```
 
 完整参数见 `python scripts/md_convert.py --help`；示例输入与产出在 [examples/](examples/)。
@@ -84,28 +86,29 @@ python scripts/md_convert.py demo.md -o demo.html --toc
 
 ```text
 md-convert-skill/
-├── SKILL.md                  # 技能定义（触发条件 + 决策表 + 验收清单）
-├── scripts/
-│   ├── md_convert.py         # 主入口：三格式管线 + docx 后处理
-│   ├── make_reference_docx.py# reference.docx 样式生成器
-│   └── docx2pdf.ps1          # Word COM 转 PDF（零第三方依赖）
-├── assets/
-│   ├── html-style.css        # 独立 HTML 样式（内嵌）
-│   └── latex-header.tex      # XeLaTeX 导言模板
-├── references/               # 深入文档（按需阅读）
-│   ├── styles.md             #   样式体系与定制
-│   └── troubleshooting.md    #   故障排查
-├── examples/                 # 示例输入与产出
-├── tests/                    # pytest 测试
-├── docs/architecture.md      # 设计决策
-└── .github/                  # CI 与 Issue 模板
+├── skills/                        # ① 技能区：整体复制/链接即可安装使用
+│   └── md-convert/                #    目录名 = 技能名
+│       ├── SKILL.md               #   技能定义（触发条件 + 决策表 + 验收清单）
+│       ├── scripts/               #   md_convert.py 主入口 / make_reference_docx.py
+│       │                          #   样式生成器 / docx2pdf.ps1 Word COM 转 PDF
+│       ├── assets/                #   html-style.css / latex-header.tex
+│       └── references/            #   styles.md / troubleshooting.md / architecture.md
+├── examples/                      # ② 项目示例与展示样张
+├── tests/                         #   pytest 测试
+├── .github/                       #   CI 与 Issue 模板
+├── README.md  CHANGELOG.md        #   项目说明文件
+├── CONTRIBUTING.md  SECURITY.md  LICENSE
+└── temp/                          # ③ 本地过程产物（gitignore，不入库）
+    ├── output/                    #   手动转换产物
+    ├── render/                    #   视觉验收渲染图
+    └── pytest/                    #   测试缓存与临时目录
 ```
 
 ## 文档
 
-- [样式体系详解](references/styles.md) —— 样式链路、pandoc 样式名对照、伪粗体规避原理、固定 reference.docx
-- [故障排查](references/troubleshooting.md) —— 按症状索引的排查手册
-- [架构与设计决策](docs/architecture.md) —— 为什么是 pandoc + 生成式 reference.docx + 后处理
+- [样式体系详解](skills/md-convert/references/styles.md) —— 样式链路、pandoc 样式名对照、伪粗体规避原理、固定 reference.docx
+- [故障排查](skills/md-convert/references/troubleshooting.md) —— 按症状索引的排查手册
+- [架构与设计决策](skills/md-convert/references/architecture.md) —— 为什么是 pandoc + 生成式 reference.docx + 后处理
 - [更新日志](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md) · [安全策略](SECURITY.md)
 
 ## 测试

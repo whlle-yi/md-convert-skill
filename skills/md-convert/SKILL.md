@@ -76,7 +76,7 @@ Word 引擎 = 先按 docx 管线产出（含全部后处理），再用 Word 更
 
 - 调字体/字号/缩进/行距/表格样式 → 命令行参数（见上表），见 `references/styles.md` 的完整参数说明。
 - 需要全新版式（页眉页脚、封面、页码样式）→ 用 `python scripts/make_reference_docx.py -o my-ref.docx ...` 生成基线，在 Word 里手动微调后，用 `pandoc --reference-doc my-ref.docx` 直接使用；把修改固化进 `make_reference_docx.py` 才能进入版本管理。
-- 转换链路与设计取舍见 `docs/architecture.md`。
+- 转换链路与设计取舍见 `references/architecture.md`。
 
 ## 已知边界
 

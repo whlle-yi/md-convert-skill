@@ -45,8 +45,8 @@ jobs:
 
       - name: Smoke convert examples
         run: |
-          python scripts/md_convert.py examples/demo.md -o dist/demo.docx --toc
-          python scripts/md_convert.py examples/demo.md -o dist/demo.html --toc
+          python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.docx --toc
+          python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.html --toc
         shell: bash
 
       - name: Upload artifacts
@@ -54,6 +54,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: outputs-${{ matrix.os }}
-          path: dist/
+          path: temp/output/
           retention-days: 7
           if-no-files-found: warn

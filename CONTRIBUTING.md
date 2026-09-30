@@ -24,8 +24,11 @@ PDF 相关用例在无 Word/XeLaTeX 的环境会自动跳过，属正常现象�
 
 ### 样式相关改动
 
-- 样式修改一律落在 `scripts/make_reference_docx.py` 或 `scripts/md_convert.py` 的
-  后处理中，**不要**提交二进制 docx 模板——样式必须可由代码复现。
+- 样式修改一律落在 `skills/md-convert/scripts/make_reference_docx.py` 或
+  `skills/md-convert/scripts/md_convert.py` 的后处理中，**不要**提交二进制
+  docx 模板——样式必须可由代码复现。
+- 技能目录 `skills/md-convert/` 必须保持自包含：技能文件不得引用仓库内
+  技能区之外的路径（examples/tests 属项目层，技能运行不依赖）。
 - pandoc 样式名（`Body Text`、`Strong`、`Source Code` 等）是契约，不可改名。
 - 涉及排版观感的改动请附 `examples/demo.md` 的新产出文件，便于直观评审。
 
@@ -37,7 +40,8 @@ PDF 相关用例在无 Word/XeLaTeX 的环境会自动跳过，属正常现象�
 
 ### 测试
 
-- 新功能须带测试；测试产物一律写入 `tmp_path`，不得污染仓库目录。
+- 新功能须带测试；测试产物经 `tmp_path` 落在 `temp/pytest/`（已 gitignore），
+  不得污染仓库其他目录。
 - 运行：`pytest -v`；提交前确保全绿（或按预期跳过）。
 
 ## 文档

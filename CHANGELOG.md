@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### Changed
+
+- 目录重构：技能本体归入 `skills/md-convert/`（自包含，整体复制/链接即可安装）；
+  项目说明、示例、测试与 CI 留在仓库根；新增 `temp/`（gitignore）收纳本地
+  过程产物（转换输出、渲染图、pytest 缓存）。
+- CI：runner 镜像不再预装 pandoc，改为显式安装；转换产物输出至 `temp/output/`。
+
 ## [0.1.0] - 2026-09-30
 
 ### Added
