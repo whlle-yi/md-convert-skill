@@ -17,9 +17,9 @@ description: 高质量把 Markdown 转换为 Word(docx)、PDF、HTML。当用户
 
 **② 确认产出组合**：
 - 用户已明确要哪些格式（"转 word"、"给我 pdf 和 html"）→ 按说的办，不再追问；
-- 未明确 → 询问一次：Word / PDF / HTML / 三件套，并给出建议（正式存档推荐 Word，分发推荐 PDF）；
+- 未明确 → 询问一次：**默认推荐 PDF**（打印/分发保真度最高），可改 Word / HTML / 多件套；
 - 识别为学术论文场景（期刊/学位论文/竞赛论文）→ 直接定为 **XeLaTeX PDF**，不产 Word；
-- 用户表达过不想被询问 → 默认 docx 并在交付时说明可补产其他格式。
+- 用户表达过不想被询问 → 默认 PDF 并在交付时说明可补产其他格式。
 
 **③ 按格式路由执行**：每种格式有自己的处理方式和失败分支——
 - docx → docx 管线（脚本内自动：生成模板 → pandoc → 修补细节 → 字体内嵌）；
@@ -56,8 +56,8 @@ python scripts/md_convert.py 报告.md -o 报告.html --toc
 
 | 用户目标 | 命令 | 引擎说明 |
 |---|---|---|
-| 交付/存档的 Word 文档 | `-o out.docx` 或 `--to docx` | pandoc + 生成式 reference.docx |
-| 打印/提交的 PDF（一般文档） | `-o out.pdf` | auto → Word COM（Windows） |
+| **PDF（默认产出）** | `-o out.pdf` 或 `--to pdf` | auto → Word COM（Windows） |
+| Word 文档（用户点名时） | `-o out.docx` 或 `--to docx` | pandoc + 生成式 reference.docx |
 | 学术论文、公式密集文档 | `--to pdf --pdf-engine latex` | XeLaTeX；**论文场景只出 PDF，不产 Word** |
 | 网页/在线传阅 | `-o out.html` | 单文件，无外部依赖 |
 | 一次要多种 | `--to docx,pdf,html -o 目录/` | 源处理一次，按需扇出 |

@@ -264,6 +264,18 @@ class TestCli:
         md.write_text("# x", encoding="utf-8")
         assert md_convert.main([str(md), "--to", "docx", "-f", "pdf"]) == 2
 
+    def test_default_format_is_pdf(self, tmp_path):
+        md = tmp_path / "f.md"
+        md.write_text("# x", encoding="utf-8")
+        args = md_convert.build_arg_parser().parse_args([str(md)])
+        outs = md_convert._plan_outputs(args, md)
+        assert list(outs) == ["pdf"]
+        assert outs["pdf"] == md.with_suffix(".pdf")
+        # -o 给目录：默认 PDF 落进该目录
+        args = md_convert.build_arg_parser().parse_args([str(md), "-o", str(tmp_path / "sub")])
+        outs = md_convert._plan_outputs(args, md)
+        assert outs["pdf"] == tmp_path / "sub" / "f.pdf"
+
     def test_citeproc_metadata(self, tmp_path):
         md = tmp_path / "cite.md"
         md.write_text(

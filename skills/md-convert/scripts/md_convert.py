@@ -714,7 +714,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument("-o", "--output",
                    help="输出文件；--to 多产出时为输出目录（默认与输入同目录）")
     p.add_argument("-f", "--format", choices=("docx", "pdf", "html"),
-                   help="目标格式（默认 docx，或按 -o 后缀推断）")
+                   help="目标格式（默认 pdf，或按 -o 后缀推断）")
     p.add_argument("--to",
                    help="一次产出多种格式，逗号分隔（如 docx,pdf,html 或 all）；与 -f 二选一")
     p.add_argument("--reader", default=DEFAULT_FROM,
@@ -784,8 +784,13 @@ def _plan_outputs(args, src: Path) -> dict[str, Path] | None:
         out = Path(args.output)
         if fmt is None:
             fmt = out.suffix.lstrip(".").lower()
+            if not fmt:
+                fmt = "pdf"                       # -o 是目录：默认产出 PDF
+                out = out / (src.stem + "." + fmt)
+        elif not out.suffix:
+            out = out / (src.stem + "." + fmt)    # 指定了格式且 -o 为目录
     else:
-        fmt = fmt or "docx"
+        fmt = fmt or "pdf"                        # 默认产出 PDF
         out = src.with_suffix("." + fmt)
     if fmt not in ("docx", "pdf", "html"):
         print(f"[md-convert] 错误：无法识别的输出格式“{fmt}”，支持 docx / pdf / html", file=sys.stderr)
