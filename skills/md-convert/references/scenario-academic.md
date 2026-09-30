@@ -5,10 +5,10 @@
 
 ## 路由规则
 
-- 脚本：`scripts/to_pdf.py`，引擎 `--pdf-engine latex`
+- 脚本：`scripts/to_pdf.py`（唯一引擎 XeLaTeX）
 - 标题编号默认开：`--number-sections`
 - 公式密集是论文常态，latex 引擎的公式质量最好；
-  OMML/Word 引擎仅当用户明确点名"要 Word 版"时使用，并说明与 PDF 版排版有差异
+  用户点名"要 Word 版"时由 to_docx.py 提供，并说明与 PDF 版排版有差异
 
 ## 参考文献
 

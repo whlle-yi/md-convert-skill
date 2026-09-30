@@ -25,7 +25,7 @@ description: 高质量把 Markdown 转换为 Word、PDF、HTML。用户要求"md
 按格式运行对应脚本（在技能目录内；参数与命令形态见 `references/params.md`）：
 
 - docx → `scripts/to_docx.py`
-- pdf → `scripts/to_pdf.py`（引擎选择见 params.md；学术论文见 `references/scenario-academic.md`）
+- pdf → `scripts/to_pdf.py`（XeLaTeX；学术论文见 `references/scenario-academic.md`）
 - html → `scripts/to_html.py`
 
 ## ④ 验收与交付
@@ -37,7 +37,7 @@ description: 高质量把 Markdown 转换为 Word、PDF、HTML。用户要求"md
 1. **文件能正常打开**，大小合理（>5KB 说明非空）。
 2. **公式**：docx 中是可编辑的 Word 公式（OMML）；PDF 中公式无缺字。
 3. **表格**：三线表边框正确（顶/底粗线、表头下细线、无竖线），表内文字单倍行距。
-4. **目录**（若有）：Word 打开时点一次"更新域"后页码正确；PDF（Word 引擎）页码已自动刷新。
+4. **目录**（若有）：Word 打开时点一次"更新域"后页码正确；PDF 目录页码由 LaTeX 编译生成。
 5. **字体**：中文无豆腐块；强调是 Heavy 字重而非拉伸加粗。
 6. **图片**：显示且未变形。
 

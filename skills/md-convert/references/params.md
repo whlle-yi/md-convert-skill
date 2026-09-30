@@ -13,12 +13,12 @@
 - 未指定 `-o` 时与输入同目录同名输出；`-o` 为目录时按脚本默认后缀落盘
 - 多种格式 = 依次运行对应脚本
 
-## PDF 引擎（to_pdf.py 专属，--pdf-engine）
+## PDF（to_pdf.py 专属）
 
-- `auto`（默认）：Windows + Word → Word 引擎，与 docx 版样式完全一致
-- `latex`：学术论文 / 公式密集；场景细节见 `scenario-academic.md`
-- `libreoffice`：无 Word 环境兜底
+- 唯一引擎为 **XeLaTeX**（需要 TeX Live / MiKTeX，建议含中文支持），输出跨机器一致
+- 排版与 docx 规范一致：宋体 + Times New Roman、Heavy 强调（`\key`）、A4、首行缩进 2 字符
 - 引擎不可用：见 `troubleshooting.md`
+- 学术论文场景（编号、文献、摘要）见 `scenario-academic.md`
 
 ## 默认值与覆盖参数
 
@@ -44,7 +44,7 @@
 to_docx.py 文档.md
 
 # 学术论文（编号 + 文献）
-to_pdf.py 论文.md --pdf-engine latex --number-sections --citeproc --bibliography refs.bib
+to_pdf.py 论文.md --number-sections --citeproc --bibliography refs.bib
 
 # 紧凑报告
 to_docx.py 报告.md && to_pdf.py 报告.md

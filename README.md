@@ -16,8 +16,8 @@
 - **中文排版规范**：正文宋体、西文/数字 Times New Roman；标题与加粗使用思源宋体 Heavy，**通过 run 拆分实现"中文 Heavy 字重 + 西文 TNR Bold"，杜绝宋体伪粗体**；首行缩进 2 字符按字符单位自适应字号。
 - **学术级表格**：默认三线表（顶/底 1.5pt、表头下 0.75pt、无竖线），可切换全框线。
 - **原生公式**：LaTeX 数学转 Word 原生公式（OMML），可继续编辑；PDF 走 XeLaTeX 或 Word 两条引擎。
-- **目录即所得**：`--toc` 生成 Word 目录域，打开时自动提示刷新；Word 引擎导出 PDF 前自动更新页码。
-- **三种 PDF 引擎自动调度**：Word COM（Windows 保真度最高）→ XeLaTeX（学术排版）→ LibreOffice（兜底）。
+- **目录即所得**：docx 的目录域打开时自动提示刷新；PDF 目录由 LaTeX 编译生成，页码即所得。
+- **XeLaTeX 学术排版**：PDF 唯一引擎，公式、三线表（booktabs）、字体嵌入，输出跨机器一致。
 - **单文件 HTML**：CSS 内嵌、图片内联，直接分发，打印样式对齐纸面排版。
 - **AI 友好**：SKILL.md 提供决策表与验收清单，供智能体按规程执行转换。
 
@@ -31,7 +31,7 @@
 | [pandoc](https://pandoc.org/installing.html) ≥ 2.10 | 必需 | `winget install JohnMacFarlane.Pandoc` |
 | python-docx | 必需 | `pip install python-docx` |
 | Microsoft Word | 可选 | Windows 上 PDF 默认引擎 |
-| TeX Live / MiKTeX（XeLaTeX） | 可选 | 学术 PDF 引擎 |
+| TeX Live / MiKTeX（XeLaTeX） | PDF 必需 | `to_pdf.py` 的唯一引擎 |
 
 字体：默认方案使用 **宋体（SimSun）、Times New Roman、Consolas**（Windows 自带）与 **思源宋体 Heavy**（`Noto Serif SC Heavy X`，推荐安装；未安装时自动回退，见 [references/styles.md](references/styles.md)）。
 
@@ -60,9 +60,9 @@ python skills/md-convert/scripts/to_docx.py examples/demo.md -o demo.docx
 python skills/md-convert/scripts/to_pdf.py  examples/demo.md -o demo.pdf
 python skills/md-convert/scripts/to_html.py examples/demo.md -o demo.html
 
-# 学术论文：XeLaTeX + 编号 + 文献（不产 Word）
+# 学术论文：XeLaTeX + 编号 + 文献（不产 Word，--pdf-engine 已移除，to_pdf.py 即 XeLaTeX）
 python skills/md-convert/scripts/to_pdf.py paper.md -o paper.pdf \
-    --pdf-engine latex --number-sections --citeproc --bibliography refs.bib
+    --number-sections --citeproc --bibliography refs.bib
 ```
 
 完整参数见各脚本的 `--help`（如 `python scripts/to_docx.py --help`）；示例输入与产出在 [examples/](examples/)。
@@ -87,7 +87,7 @@ md-convert-skill/
 │   └── md-convert/                #    目录名 = 技能名
 │       ├── SKILL.md               #   技能定义（触发条件 + 决策表 + 验收清单）
 │       ├── scripts/               #   入口 to_docx / to_pdf / to_html
-│       │                          #   共享 common + docx_lib；make_reference_docx 模板生成器；docx2pdf.ps1
+│       │                          #   共享 common + docx_lib；make_reference_docx 模板生成器
 │       ├── assets/                #   html-style.css / latex-header.tex
 │       └── references/            #   styles.md / troubleshooting.md
 ├── examples/                      # ② 项目示例与展示样张

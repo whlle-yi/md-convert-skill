@@ -53,7 +53,7 @@ pandoc 的 docx 写入器**不自带排版**，一切外观都取自 `--referenc
 
 - 字体族名：`Noto Serif SC Heavy X`（本仓库默认），文件默认从 `%USERPROFILE%\.zcode\fonts\NotoSerifSC-HeavyX.ttf` 自动探测（仅影响 XeLaTeX 路径；docx 只引用族名）。
 - 读者机器上没有该字体时：docx 中该字体名回退为 Word 默认中文字体（观感降级但可读）；HTML 中经 `local()` 回退链自动降级为宋体伪粗体；LaTeX 中经 `\IfFontExistsTF` 回退。
-- 发布给"不装字体也要最好效果"的读者：PDF（Word 引擎）不依赖读者字体，是最佳分发格式。
+- 发布给"不装字体也要最好效果"的读者：PDF 由 LaTeX 编译、字体天然嵌入，是最佳分发格式。
 - 完全不同的字体需求：`--heading-cjk-font <族名>` 全局替换；或 `--no-heavy` 退回宋体伪粗体。
 
 ## 固定 reference.docx（高级）

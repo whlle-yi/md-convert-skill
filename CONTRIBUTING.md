@@ -36,7 +36,6 @@ PDF 相关用例在无 Word/XeLaTeX 的环境会自动跳过，属正常现象�
 
 - Python：类型注解、`from __future__ import annotations`、中文 docstring；
   不引入重型依赖（当前仅 python-docx）。
-- PowerShell：保持 `docx2pdf.ps1` 零第三方依赖。
 
 ### 测试
 

@@ -15,13 +15,13 @@
 pip install python-docx
 ```
 
-### 未找到可用的 PDF 引擎
-三选一：Windows + Microsoft Word（默认探测）；XeLaTeX（TeX Live/MiKTeX，`--pdf-engine latex`）；LibreOffice（`soffice` 加入 PATH，`--pdf-engine libreoffice`）。
+### 未找到 xelatex
+PDF 唯一引擎是 XeLaTeX。安装：TeX Live / MiKTeX（建议含中文支持，Windows 可选装 ctex 方案）；装完重开终端确认 `xelatex --version` 可用。
 
 ## docx 问题
 
 ### Word 打开提示"是否更新此文档中的域"
-预期行为：目录页码需 Word 排版后才能计算，点"是"即可。想消除提示：转换时不加 `--toc`；或用 `--pdf-engine word` 直接出 PDF（自动更新）。
+预期行为：目录页码需 Word 排版后才能计算，点"是"即可。想消除提示：转换时不加 `--toc`；PDF 产物（LaTeX 编译）不存在此提示。
 
 ### 标题没有编号
 `--number-sections` 依赖 pandoc ≥ 2.10 的 docx 编号实现。先升级 pandoc；仍无效说明 pandoc 版本实现变化，可改在 Word 中为 Heading 样式挂多级列表（一次性操作可接受）。
@@ -43,12 +43,6 @@ pip install python-docx
 - 超大图片检查 `--dpi`（默认 96；提高 dpi 显示尺寸变小，公式：显示宽度 = 像素 ÷ dpi）。
 
 ## PDF 问题
-
-### Word 引擎：转换失败 / 卡住
-- 确认 Word 已安装且能正常打开 docx；
-- 关闭已打开同名 PDF（文件占用）；
-- 杀毒软件可能拦截 COM 自动化，放行 Word；
-- 单独复现：`powershell -NoProfile -ExecutionPolicy Bypass -File scripts/docx2pdf.ps1 -InPath x.docx -OutPath y.pdf`。
 
 ### LaTeX 引擎：字体报错（fontspec 找不到字体）
 - `SimSun` / `Times New Roman` 是 Windows 自带；Linux/macOS 需自行安装这两个字体，或 `--cjk-font Noto Serif CJK SC --latin-font "TeX Gyre Termes"`；

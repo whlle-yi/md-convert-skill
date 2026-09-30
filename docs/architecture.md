@@ -31,7 +31,7 @@ python-docx 后处理（docx_lib.py）
 ```
 
 入口脚本保持极薄（参数绑定 + 调度），管线逻辑集中在 `docx_lib.py`
-（被 to_docx 与 to_pdf 的 Word 引擎复用），格式特有知识（PDF 引擎选择、
+（被 to_docx 与 to_pdf 复用），格式特有知识（PDF 编译参数、
 HTML 模板）分别位于各自入口。
 
 ## 为什么以 pandoc 为核心
@@ -61,18 +61,19 @@ pandoc 样式体系覆盖不到的三个"质量命门"：
 |---|---|---|
 | 中文加粗伪粗体 | `Strong` 样式的 `w:b` 对中西文同时生效，宋体无粗体字形 | `fix_cjk_bold`：加粗 run 按 CJK/非 CJK 拆分，中文段设 Heavy 字体并**显式 `w:b=0`**（run 级关闭覆盖样式级），西文段保留 TNR Bold |
 | 三线表 | `Table` 样式无法表达"仅首行下边线" | `style_tables`：表级边框 + 首行单元格 `tcBorders` |
-| 目录页码 | Word 需排版后才能算页码 | `enable_update_fields`：打开时刷新；PDF 走 Word 引擎时由 COM 先行更新 |
+| 目录页码 | Word 需排版后才能算页码 | docx：`enable_update_fields` 打开时刷新；PDF：LaTeX 编译即得 |
 
-## PDF 引擎调度
+## PDF 引擎
 
-| 引擎 | 适用 | 权衡 |
-|---|---|---|
-| Word COM | Windows + Word，一般文档 | 保真度最高（与 docx 完全同源）；依赖 Office；速度中等 |
-| XeLaTeX | 学术、公式密集、跨平台 | 公式/断行质量最好；字体配置复杂；HTML 语义的表格样式受限 |
-| LibreOffice | Linux 服务器兜底 | 无 Office 环境的替代；部分样式还原度略低 |
+PDF 唯一引擎为 **XeLaTeX**，理由：
 
-Word COM 用 **PowerShell 脚本**而非 pywin32：Windows 自带 PowerShell，避免引入
-`pywin32` 依赖与版本问题；`docx2pdf` 包仅作为兜底存在。
+- 输出跨机器一致（编译结果确定，不随本机 Office 漂移）；
+- 公式、断行、booktabs 三线表质量最好；字体天然嵌入；
+- 与论文场景（scenario-academic.md）共用同一条路线，一套验收标准。
+
+代价：读者机器需要 TeX Live / MiKTeX 才能自行转换（分发 PDF 本身不受影响）；
+docx 与 PDF 分属两套排版引擎，细节呈现有差异——已通过统一的动态导言
+（字体、首行缩进 2 字符、行距）把差异压到最小。
 
 ## HTML 路径
 

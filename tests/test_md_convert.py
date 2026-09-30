@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -29,24 +30,7 @@ DEMO = ROOT / "examples" / "demo.md"
 # PDF 引擎探测（模块级计算一次）
 # ---------------------------------------------------------------------------
 
-def _word_available() -> bool:
-    if sys.platform != "win32":
-        return False
-    try:
-        proc = subprocess.run(
-            ["powershell.exe", "-NoProfile", "-Command",
-             "try { $w = New-Object -ComObject Word.Application; $w.Quit(); 'yes' } "
-             "catch { 'no' }"],
-            capture_output=True, text=True, timeout=90,
-        )
-        return "yes" in (proc.stdout or "")
-    except Exception:
-        return False
-
-
-# 仅探测 Word 引擎：LaTeX 引擎依赖本机中/西文字体（SimSun、Times New Roman），
-# CI 的 Linux 镜像两者皆无，自动跳过；本地开发环境可完整覆盖。
-PDF_ENGINE = "word" if _word_available() else None
+XELATEX = shutil.which("xelatex") is not None
 
 
 # ---------------------------------------------------------------------------
@@ -217,13 +201,11 @@ class TestConvertHtml:
 # pdf 转换（引擎可用时）
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skipif(PDF_ENGINE is None, reason="无可用 PDF 引擎（需要 Word 或 XeLaTeX）")
+@pytest.mark.skipif(not XELATEX, reason="无 xelatex，跳过 PDF 测试")
 class TestConvertPdf:
     def test_pdf_generated(self, tmp_path):
         out = tmp_path / "demo.pdf"
-        code = to_pdf.main([str(DEMO), "-o", str(out),
-                            "--pdf-engine", PDF_ENGINE, "--toc"])
-        assert code == 0
+        assert to_pdf.main([str(DEMO), "-o", str(out), "--toc"]) == 0
         data = out.read_bytes()
         assert data[:5] == b"%PDF-"
         assert len(data) > 20_000
@@ -247,6 +229,16 @@ class TestCli:
         md.write_text("# 标题\n\n正文**加粗**测试。", encoding="utf-8")
         assert to_html.main([str(md), "-o", str(tmp_path / "b.html")]) == 0
         assert (tmp_path / "b.html").exists()
+
+    def test_latex_header_polish(self, tmp_path):
+        md = tmp_path / "h.md"
+        md.write_text("# x", encoding="utf-8")
+        args = to_pdf.build_parser().parse_args([str(md)])
+        header = to_pdf.build_latex_header(args)
+        assert "\\setmainfont{Times New Roman}" in header
+        assert "usepackage{xeCJK}" in header
+        assert "\\newcommand{\\key}" in header          # Heavy 强调命令
+        assert "setlength{\\parindent}{2em}" in header  # 首行缩进 2 字符
 
     def test_default_output_is_pdf(self, tmp_path):
         md = tmp_path / "f.md"

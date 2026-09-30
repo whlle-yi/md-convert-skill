@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""docx_lib.py — docx 管线核心，供 to_docx.py 与 to_pdf.py（Word 引擎）复用。
+"""docx_lib.py — docx 管线核心，供 to_docx.py 复用。
 
 四步管线（convert_docx）：
   1. build_reference()        生成受控样式的 reference.docx（排版模板）
