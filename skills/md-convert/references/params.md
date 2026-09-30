@@ -4,14 +4,16 @@
 
 ## 命令形态
 
-在技能目录内执行：
+在技能目录内执行，按产出格式选择脚本：
 
-    python scripts/md_convert.py 文档.md --to docx,pdf,html -o 输出目录/ [参数]
+    python scripts/to_docx.py 文档.md -o 输出.docx [参数]
+    python scripts/to_pdf.py  文档.md -o 输出.pdf  [参数]
+    python scripts/to_html.py 文档.md -o 输出.html [参数]
 
-- 单格式：`--to docx`，或 `-o 文件名` 按后缀推断；未指定格式时默认 **pdf**
-- 多格式：`--to docx,pdf,html`（或 `all`）一次扇出，`-o` 为输出目录
+- 未指定 `-o` 时与输入同目录同名输出；`-o` 为目录时按脚本默认后缀落盘
+- 多种格式 = 依次运行对应脚本
 
-## PDF 引擎（--pdf-engine）
+## PDF 引擎（to_pdf.py 专属，--pdf-engine）
 
 - `auto`（默认）：Windows + Word → Word 引擎，与 docx 版样式完全一致
 - `latex`：学术论文 / 公式密集；场景细节见 `scenario-academic.md`
@@ -34,19 +36,18 @@
 | 图片分辨率 | 96 dpi | `--dpi` |
 | 输入格式 | `markdown+east_asian_line_breaks`（中文硬换行不产生多余空格） | `--reader gfm`（严格 GFM 源） |
 | 参考文献 | 默认关闭 | `--citeproc` + `--bibliography 文献.bib`（BibTeX / BibLaTeX / CSL JSON / YAML）；`--csl` 指定样式；引用键写 `[@id]` |
-| 多格式产出 | 单格式 | `--to docx,pdf,html`（或 `all`）一次扇出，`-o` 为输出目录 |
 
 ## 常用组合
 
 ```bash
 # 标准交付（默认即规范值）
-md_convert.py 文档.md --to docx
+to_docx.py 文档.md
 
 # 学术论文（编号 + 文献）
-md_convert.py 论文.md --to pdf --pdf-engine latex --number-sections --citeproc --bibliography refs.bib
+to_pdf.py 论文.md --pdf-engine latex --number-sections --citeproc --bibliography refs.bib
 
-# 无目录的紧凑报告，多格式一次产出
-md_convert.py 报告.md --to docx,pdf -o 输出目录/
+# 紧凑报告
+to_docx.py 报告.md && to_pdf.py 报告.md
 ```
 
 ## 注意

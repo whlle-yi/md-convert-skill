@@ -11,7 +11,7 @@
 
 ## 特性
 
-- **一次源处理、按需扇出**：`--to docx,pdf,html` 一个命令产出多种格式，输出统一进指定目录；
+- **三个独立入口脚本**：`to_docx` / `to_pdf` / `to_html` 按产出格式各司其职，职责单一、可单独调用；
 - **受控样式体系**：docx 外观由程序化生成的 reference.docx 决定，每次转换结果一致可复现，不依赖操作系统的 Word 模板。
 - **中文排版规范**：正文宋体、西文/数字 Times New Roman；标题与加粗使用思源宋体 Heavy，**通过 run 拆分实现"中文 Heavy 字重 + 西文 TNR Bold"，杜绝宋体伪粗体**；首行缩进 2 字符按字符单位自适应字号。
 - **学术级表格**：默认三线表（顶/底 1.5pt、表头下 0.75pt、无竖线），可切换全框线。
@@ -55,22 +55,17 @@ xcopy /E /I md-convert-skill\skills\md-convert "%USERPROFILE%\.agents\skills\md-
 ```bash
 pip install python-docx
 
-# 一次源处理，按需扇出多种格式（推荐）
-python skills/md-convert/scripts/md_convert.py examples/demo.md --to docx,pdf,html -o temp/output/
+# 按产出格式选择入口脚本（在技能目录内执行）
+python skills/md-convert/scripts/to_docx.py examples/demo.md -o demo.docx
+python skills/md-convert/scripts/to_pdf.py  examples/demo.md -o demo.pdf
+python skills/md-convert/scripts/to_html.py examples/demo.md -o demo.html
 
-# 只要单种格式
-python skills/md-convert/scripts/md_convert.py examples/demo.md --to docx
-python skills/md-convert/scripts/md_convert.py examples/demo.md --to docx --toc --number-sections
-
-# 学术论文：只出 XeLaTeX PDF（不产 Word）
-python skills/md-convert/scripts/md_convert.py paper.md --to pdf --pdf-engine latex
-
-# 带参考文献（BibTeX / BibLaTeX / CSL YAML，引用键 [@id]）
-python skills/md-convert/scripts/md_convert.py paper.md --to pdf --pdf-engine latex \
-    --citeproc --bibliography refs.bib
+# 学术论文：XeLaTeX + 编号 + 文献（不产 Word）
+python skills/md-convert/scripts/to_pdf.py paper.md -o paper.pdf \
+    --pdf-engine latex --number-sections --citeproc --bibliography refs.bib
 ```
 
-完整参数见 `python scripts/md_convert.py --help`；示例输入与产出在 [examples/](examples/)。
+完整参数见各脚本的 `--help`（如 `python scripts/to_docx.py --help`）；示例输入与产出在 [examples/](examples/)。
 
 ## 转换质量对照
 
@@ -91,8 +86,8 @@ md-convert-skill/
 ├── skills/                        # ① 技能区：整体复制/链接即可安装使用
 │   └── md-convert/                #    目录名 = 技能名
 │       ├── SKILL.md               #   技能定义（触发条件 + 决策表 + 验收清单）
-│       ├── scripts/               #   md_convert.py 主入口 / make_reference_docx.py
-│       │                          #   样式生成器 / docx2pdf.ps1 Word COM 转 PDF
+│       ├── scripts/               #   入口 to_docx / to_pdf / to_html
+│       │                          #   共享 common + docx_lib；make_reference_docx 模板生成器；docx2pdf.ps1
 │       ├── assets/                #   html-style.css / latex-header.tex
 │       └── references/            #   styles.md / troubleshooting.md
 ├── examples/                      # ② 项目示例与展示样张

@@ -14,7 +14,7 @@ demo.md ──pandoc──► docx（引用 reference.docx 的样式）──pyt
 pandoc 的 docx 写入器**不自带排版**，一切外观都取自 `--reference-doc` 里的样式。因此样式质量取决于两处：
 
 1. **reference.docx 生成器**（`scripts/make_reference_docx.py`）——控制字体、字号、行距、缩进、颜色；
-2. **后处理**（`scripts/md_convert.py`）——控制 pandoc 样式体系做不到的事：中西文分别加粗、三线表边框、目录域自动刷新。
+2. **后处理**（`scripts/docx_lib.py`）——控制 pandoc 样式体系做不到的事：中西文分别加粗、三线表边框、目录域自动刷新。
 
 ## pandoc 样式名对照
 
@@ -68,11 +68,11 @@ python scripts/make_reference_docx.py -o my-ref.docx
 pandoc 文档.md --reference-doc my-ref.docx -o 文档.docx
 ```
 
-注意：手动微调的成果**不会**被 md_convert.py 使用（它每次重新生成）。要让定制进入日常管线，需把改动固化回 `make_reference_docx.py` 并提交 PR；`my-ref.docx` 方式适合一次性任务。
+注意：手动微调的成果**不会**被转换流程使用（reference.docx 每次转换重新生成）。要让定制进入日常管线，需把改动固化回 `make_reference_docx.py` 并提交 PR；`my-ref.docx` 方式适合一次性任务。
 
 ## XeLaTeX 路径的字体
 
-`md_convert.py` 动态生成导言（等价于 `assets/latex-header.tex`）：
+`to_pdf.py` 的 XeLaTeX 引擎动态生成导言（等价于 `assets/latex-header.tex`）：
 
 - `\setmainfont{Times New Roman}`；`\setCJKmainfont{SimSun}[AutoFakeBold=2.5]`
 - 检测到 Heavy 字体文件时，用 `Path=` 精确加载并把 `BoldFont` 指向 Heavy 文件 → `\textbf{中文}` 直接得到 Heavy 字重，无伪粗体；

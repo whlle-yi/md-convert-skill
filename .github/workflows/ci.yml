@@ -45,8 +45,8 @@ jobs:
 
       - name: Smoke convert examples
         run: |
-          python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.docx --toc
-          python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.html --toc
+          python skills/md-convert/scripts/to_docx.py examples/demo.md -o temp/output/demo.docx --toc
+          python skills/md-convert/scripts/to_html.py examples/demo.md -o temp/output/demo.html --toc
         shell: bash
 
       - name: Upload artifacts

@@ -12,6 +12,10 @@
 
 ### Changed
 
+- **管线拆分**：`md_convert.py` 拆为三个入口脚本 `to_docx.py` / `to_pdf.py` /
+  `to_html.py`（按产出格式各司其职）与共享层 `common.py`（公共参数、pandoc
+  调用、citeproc、标准 main）/ `docx_lib.py`（docx 四步管线 + 后处理 + 字体内嵌）；
+  SKILL.md ③ 按格式路由到对应脚本；移除 `--to` 多产出。
 - SKILL.md 参数表与学术论文场景封装为 references 文件（params.md、
   scenario-academic.md），执行规程内联路由指针 + 路由总表双层导航；
   SKILL.md 减至 45 行，只保留每次转换必读的规程骨架与验收清单。

@@ -11,7 +11,7 @@ body:
     attributes:
       label: 完整命令与 --verbose 输出
       placeholder: |
-        python scripts/md_convert.py demo.md -o demo.docx --toc --verbose
+        python scripts/to_docx.py demo.md -o demo.docx --toc --verbose
         （附完整终端输出）
     validations:
       required: true

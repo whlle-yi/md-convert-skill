@@ -9,7 +9,7 @@ date: 2026-09-30
 本文档覆盖 Markdown 转换中的全部高频元素，用于检验 md-convert 的排版质量：中文宋体、西文 Times New Roman、**Heavy 字重强调**、三线表、原生公式、代码样式与题注。转换命令：
 
 ```bash
-python scripts/md_convert.py examples/demo.md -o demo.docx --toc
+python scripts/to_docx.py examples/demo.md -o demo.docx --toc
 ```
 
 核心主张是**排版质量决定文档可信度**：中文强调应当使用 **Heavy 字重**而非伪粗体，如 **模型在 MMLU 基准上取得 86.4 分**；西文强调保持 Times New Roman Bold（**Bold Text**），二者在加粗时自动拆分处理。
@@ -65,7 +65,7 @@ def convert(markdown_path: str, output: str, *, toc: bool = True) -> None:
     argv = [markdown_path, "-o", output]
     if toc:
         argv.append("--toc")
-    exit_code = md_convert.main(argv)
+    exit_code = to_docx.main(argv)
     assert exit_code == 0, f"转换失败：exit={exit_code}"
 ```
 
@@ -74,7 +74,7 @@ Shell 示例：
 ```bash
 # 批量转换当前目录全部 md 文件
 for f in *.md; do
-  python md_convert.py "$f" -o "dist/${f%.md}.docx" --toc
+  python to_docx.py "$f" -o "dist/${f%.md}.docx" --toc
 done
 ```
 

@@ -1,4 +1,4 @@
-"""pytest 共享配置：把技能脚本目录加入 sys.path，使测试可直接导入 md_convert。"""
+"""pytest 共享配置：把技能脚本目录加入 sys.path，使测试可直接导入入口脚本与共享层。"""
 
 import sys
 from pathlib import Path

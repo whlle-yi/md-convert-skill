@@ -209,7 +209,7 @@ h1, h2, h3, h4 { break-after: avoid; }
 <p>本文档覆盖 Markdown 转换中的全部高频元素，用于检验 md-convert
 的排版质量：中文宋体、西文 Times New Roman、<strong>Heavy
 字重强调</strong>、三线表、原生公式、代码样式与题注。转换命令：</p>
-<pre class="bash"><code>python scripts/md_convert.py examples/demo.md -o demo.docx --toc</code></pre>
+<pre class="bash"><code>python scripts/to_docx.py examples/demo.md -o demo.docx --toc</code></pre>
 <p>核心主张是<strong>排版质量决定文档可信度</strong>：中文强调应当使用
 <strong>Heavy 字重</strong>而非伪粗体，如 <strong>模型在 MMLU 基准上取得
 86.4 分</strong>；西文强调保持 Times New Roman Bold（<strong>Bold
@@ -310,12 +310,12 @@ paribus</em>。删除线效果：<del>已废弃的方案</del>。行内代码使
     argv = [markdown_path, &quot;-o&quot;, output]
     if toc:
         argv.append(&quot;--toc&quot;)
-    exit_code = md_convert.main(argv)
+    exit_code = to_docx.main(argv)
     assert exit_code == 0, f&quot;转换失败：exit={exit_code}&quot;</code></pre>
 <p>Shell 示例：</p>
 <pre class="bash"><code># 批量转换当前目录全部 md 文件
 for f in *.md; do
-  python md_convert.py &quot;$f&quot; -o &quot;dist/${f%.md}.docx&quot; --toc
+  python to_docx.py &quot;$f&quot; -o &quot;dist/${f%.md}.docx&quot; --toc
 done</code></pre>
 <h1 id="列表与引用">列表与引用</h1>
 <p>转换管线遵循以下顺序：</p>

@@ -2,25 +2,37 @@
 
 本文记录 md-convert 的技术选型理由与实现结构，供维护者与二次开发者阅读。
 
-## 总体管线
+## 模块结构
 
 ```text
-                      ┌────────────────────────────────────────────┐
-                      │                md_convert.py               │
- input.md ───────────►│  参 数 解 析 / 引 擎 调 度 / 后 处 理        │
-                      └──────┬───────────────┬───────────────┬─────┘
-                             │               │               │
-                     docx    │           pdf │           html │
-                             ▼               ▼               ▼
-                    pandoc → docx    ┌─ word: docx→COM→pdf   pandoc → html5
-                    (reference.docx) ├─ latex: pandoc→xelatex  (+内嵌 CSS)
-                             │       └─ libreoffice: docx→pdf
-                             ▼
-                    python-docx 后处理
-                    ├─ style_tables()   三线表/全框线 + 表头加粗
-                    ├─ fix_cjk_bold()   中西文加粗拆分（Heavy 无伪粗）
-                    └─ enable_update_fields()  目录域自动刷新
+SKILL.md 执行规程 ② 确定产出组合
+        │ ③ 按格式路由
+        ▼
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│  to_docx.py │  │  to_pdf.py  │  │  to_html.py │   三个薄入口：参数绑定 + 调度
+└──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+       │                │                │
+       │        ┌───────┴────────┐       │
+       │        │ word │ latex │ libreoffice│
+       ▼        ▼      │       ▼       ▼
+┌──────────────────────────────┐  pandoc → html5
+│ common.py  公共参数/pandoc/  │  (+内嵌 CSS)
+│ citeproc/标准 main           │
+├──────────────────────────────┤
+│ docx_lib.py  docx 四步管线： │
+│  build_reference → pandoc →  │
+│  后处理 → 字体内嵌            │
+└──────────────────────────────┘
+       ▼
+python-docx 后处理（docx_lib.py）
+├─ style_tables()   三线表/全框线 + 表头加粗
+├─ fix_cjk_bold()   中西文加粗拆分（Heavy 无伪粗）
+└─ enable_update_fields()  目录域自动刷新
 ```
+
+入口脚本保持极薄（参数绑定 + 调度），管线逻辑集中在 `docx_lib.py`
+（被 to_docx 与 to_pdf 的 Word 引擎复用），格式特有知识（PDF 引擎选择、
+HTML 模板）分别位于各自入口。
 
 ## 为什么以 pandoc 为核心
 

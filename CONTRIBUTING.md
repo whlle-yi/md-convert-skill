@@ -25,7 +25,7 @@ PDF 相关用例在无 Word/XeLaTeX 的环境会自动跳过，属正常现象�
 ### 样式相关改动
 
 - 样式修改一律落在 `skills/md-convert/scripts/make_reference_docx.py` 或
-  `skills/md-convert/scripts/md_convert.py` 的后处理中，**不要**提交二进制
+  `skills/md-convert/scripts/docx_lib.py` 的后处理中，**不要**提交二进制
   docx 模板——样式必须可由代码复现。
 - 技能目录 `skills/md-convert/` 必须保持自包含：技能文件不得引用仓库内
   技能区之外的路径（examples/tests 属项目层，技能运行不依赖）。

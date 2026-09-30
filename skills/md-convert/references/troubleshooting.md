@@ -1,6 +1,6 @@
 # 故障排查
 
-按报错/症状索引。先运行 `python scripts/md_convert.py --version`、`pandoc --version` 确认基础环境，再加 `--verbose` 复现查看完整命令。
+按报错/症状索引。先运行 `python scripts/to_docx.py --version`、`pandoc --version` 确认基础环境，再加 `--verbose` 复现查看完整命令。
 
 ## 依赖问题
 

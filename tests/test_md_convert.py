@@ -1,7 +1,7 @@
 """md-convert 端到端与样式测试。
 
 - 样式测试直接校验 make_reference_docx 的产物；
-- 转换测试运行 md_convert.main()，对实际产物做断言；
+- 转换测试运行三个入口脚本（to_docx / to_pdf / to_html）的 main()，对实际产物做断言；
 - PDF 用例在无可用引擎（无 Word 且无 XeLaTeX）的环境自动跳过。
 """
 
@@ -15,7 +15,10 @@ import pytest
 from docx import Document
 from docx.oxml.ns import qn
 
-import md_convert
+import common
+import to_docx
+import to_html
+import to_pdf
 from make_reference_docx import DEFAULT_HEAVY_CJK_FONT, build_reference
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -119,7 +122,7 @@ class TestReferenceDocx:
 @pytest.fixture(scope="module")
 def docx_out(tmp_path_factory):
     out = tmp_path_factory.mktemp("docx") / "demo.docx"
-    code = md_convert.main([str(DEMO), "-o", str(out), "--toc", "--verbose"])
+    code = to_docx.main([str(DEMO), "-o", str(out), "--toc", "--verbose"])
     assert code == 0
     return out
 
@@ -197,7 +200,7 @@ class TestConvertDocx:
 class TestConvertHtml:
     def test_html_self_contained(self, tmp_path):
         out = tmp_path / "demo.html"
-        assert md_convert.main([str(DEMO), "-o", str(out), "--toc"]) == 0
+        assert to_html.main([str(DEMO), "-o", str(out), "--toc"]) == 0
         html = out.read_text(encoding="utf-8")
         assert "<table" in html
         assert "font-family" in html          # CSS 已内嵌
@@ -206,7 +209,7 @@ class TestConvertHtml:
 
     def test_title_extracted_from_yaml(self, tmp_path):
         out = tmp_path / "demo.html"
-        md_convert.main([str(DEMO), "-o", str(out)])
+        to_html.main([str(DEMO), "-o", str(out)])
         assert "<title>md-convert 转换质量演示</title>" in out.read_text(encoding="utf-8")
 
 
@@ -218,8 +221,8 @@ class TestConvertHtml:
 class TestConvertPdf:
     def test_pdf_generated(self, tmp_path):
         out = tmp_path / "demo.pdf"
-        code = md_convert.main([str(DEMO), "-o", str(out),
-                                "--pdf-engine", PDF_ENGINE, "--toc"])
+        code = to_pdf.main([str(DEMO), "-o", str(out),
+                            "--pdf-engine", PDF_ENGINE, "--toc"])
         assert code == 0
         data = out.read_bytes()
         assert data[:5] == b"%PDF-"
@@ -231,50 +234,30 @@ class TestConvertPdf:
 # ---------------------------------------------------------------------------
 
 class TestCli:
-    def test_missing_input(self, capsys):
-        assert md_convert.main(["no-such-file.md"]) == 2
+    def test_missing_input(self):
+        assert to_docx.main(["no-such-file.md"]) == 2
 
-    def test_unknown_format(self, tmp_path, capsys):
+    def test_wrong_output_extension(self, tmp_path):
         md = tmp_path / "a.md"
         md.write_text("# hi", encoding="utf-8")
-        assert md_convert.main([str(md), "-o", str(tmp_path / "a.xyz")]) == 2
+        assert to_docx.main([str(md), "-o", str(tmp_path / "a.xyz")]) == 2
 
     def test_format_from_output_suffix(self, tmp_path):
         md = tmp_path / "b.md"
         md.write_text("# 标题\n\n正文**加粗**测试。", encoding="utf-8")
-        assert md_convert.main([str(md), "-o", str(tmp_path / "b.html")]) == 0
+        assert to_html.main([str(md), "-o", str(tmp_path / "b.html")]) == 0
         assert (tmp_path / "b.html").exists()
 
-    def test_multi_output(self, tmp_path):
-        md = tmp_path / "c.md"
-        md.write_text("# 多产出\n\n正文**加粗**测试。", encoding="utf-8")
-        outdir = tmp_path / "out"
-        assert md_convert.main([str(md), "--to", "docx,html", "-o", str(outdir)]) == 0
-        assert (outdir / "c.docx").exists()
-        assert (outdir / "c.html").exists()
-        assert not (outdir / "c.pdf").exists()  # 未要求的格式不产出
-
-    def test_to_unknown_format(self, tmp_path):
-        md = tmp_path / "d.md"
-        md.write_text("# x", encoding="utf-8")
-        assert md_convert.main([str(md), "--to", "docx,xyz"]) == 2
-
-    def test_to_conflicts_with_format(self, tmp_path):
-        md = tmp_path / "e.md"
-        md.write_text("# x", encoding="utf-8")
-        assert md_convert.main([str(md), "--to", "docx", "-f", "pdf"]) == 2
-
-    def test_default_format_is_pdf(self, tmp_path):
+    def test_default_output_is_pdf(self, tmp_path):
         md = tmp_path / "f.md"
         md.write_text("# x", encoding="utf-8")
-        args = md_convert.build_arg_parser().parse_args([str(md)])
-        outs = md_convert._plan_outputs(args, md)
-        assert list(outs) == ["pdf"]
-        assert outs["pdf"] == md.with_suffix(".pdf")
+        args = to_pdf.build_parser().parse_args([str(md)])
+        out = common.resolve_output(args, md, default_ext="pdf")
+        assert out == md.with_suffix(".pdf")
         # -o 给目录：默认 PDF 落进该目录
-        args = md_convert.build_arg_parser().parse_args([str(md), "-o", str(tmp_path / "sub")])
-        outs = md_convert._plan_outputs(args, md)
-        assert outs["pdf"] == tmp_path / "sub" / "f.pdf"
+        args = to_pdf.build_parser().parse_args([str(md), "-o", str(tmp_path / "sub")])
+        out = common.resolve_output(args, md, default_ext="pdf")
+        assert out == tmp_path / "sub" / "f.pdf"
 
     def test_citeproc_metadata(self, tmp_path):
         md = tmp_path / "cite.md"
@@ -288,7 +271,7 @@ class TestCli:
             encoding="utf-8",
         )
         out = tmp_path / "cite.docx"
-        assert md_convert.main([str(md), "-o", str(out), "--citeproc"]) == 0
+        assert to_docx.main([str(md), "-o", str(out), "--citeproc"]) == 0
         text = "\n".join(p.text for p in Document(str(out)).paragraphs)
         assert "Nakamoto" in text  # 引文与文末参考文献均已渲染
 
@@ -303,7 +286,7 @@ class TestCli:
             encoding="utf-8",
         )
         out = tmp_path / "cite2.docx"
-        assert md_convert.main([str(md), "-o", str(out), "--citeproc",
-                                "--bibliography", str(bib)]) == 0
+        assert to_docx.main([str(md), "-o", str(out), "--citeproc",
+                             "--bibliography", str(bib)]) == 0
         text = "\n".join(p.text for p in Document(str(out)).paragraphs)
         assert "Nakamoto" in text
