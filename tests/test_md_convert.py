@@ -91,6 +91,18 @@ class TestReferenceDocx:
         assert round(sec.page_width.mm) == 210
         assert round(sec.page_height.mm) == 297
 
+    def test_no_theme_font_override(self, ref):
+        """主题属性优先于显式字体，受控样式必须清除；主题本身也应改为规范字体。"""
+        doc = Document(str(ref))
+        for name in ("Normal", "Heading 1", "Title", "Strong", "Author", "Date"):
+            rfonts = doc.styles[name].element.rPr.rFonts
+            for attr in ("asciiTheme", "hAnsiTheme", "eastAsiaTheme", "cstheme"):
+                assert rfonts.get(qn(f"w:{attr}")) is None, f"{name} 残留 {attr}"
+        theme = [p for p in doc.part.package.iter_parts()
+                 if str(p.partname) == "/word/theme/theme1.xml"][0]
+        xml = theme.blob.decode("utf-8")
+        assert "Times New Roman" in xml and "Aptos" not in xml
+
 
 # ---------------------------------------------------------------------------
 # docx 转换

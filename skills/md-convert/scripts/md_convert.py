@@ -323,6 +323,139 @@ def enable_update_fields(doc) -> None:
 
 
 # ---------------------------------------------------------------------------
+# 字体内嵌（ODTTF）：把 Heavy 中文字体子集嵌入 docx
+# ---------------------------------------------------------------------------
+
+def _subset_font(font_path: Path, text: str) -> bytes:
+    """按文档用字裁剪字体，控制体积（完整 CJK 字体 10MB+，子集通常 <2MB）。"""
+    import io
+
+    from fontTools import subset
+    from fontTools.ttLib import TTFont
+
+    opts = subset.Options()
+    opts.name_IDs = ["*"]
+    opts.name_legacy = True
+    opts.name_languages = ["*"]
+    opts.glyph_names = False
+    opts.layout_features = ["*"]
+    opts.notdef_outline = True
+    font = TTFont(str(font_path))
+    subsetter = subset.Subsetter(options=opts)
+    subsetter.populate(text=text)
+    subsetter.subset(font)
+    buf = io.BytesIO()
+    font.save(buf)
+    return buf.getvalue()
+
+
+def _obfuscate_odttf(data: bytes, guid_str: str) -> bytes:
+    """ODTTF 混淆：前 32 字节与 GUID 十六进制字节顺序异或，循环两轮。"""
+    hexstr = guid_str.strip("{}").replace("-", "")
+    key = bytes.fromhex(hexstr)
+    head = bytearray(data[:32])
+    for i in range(32):
+        head[i] ^= key[i % 16]
+    return bytes(head) + data[32:]
+
+
+def embed_heavy_font(docx_path: Path, family: str, font_file: Path) -> bool:
+    """把 Heavy 字体以 ODTTF 子集嵌入 docx。
+
+    Word 对按用户注册的字体解析不稳定、对 CJK 变量字体支持差，接收方也
+    往往没有该字体——内嵌后渲染不依赖系统安装。成功返回 True。
+    """
+    import io
+    import uuid
+    import zipfile
+
+    if not font_file.is_file():
+        return False
+    with zipfile.ZipFile(docx_path) as z:
+        names = z.namelist()
+        texts = []
+        for part in ("word/document.xml", "word/footnotes.xml", "word/endnotes.xml",
+                     "word/header1.xml", "word/footer1.xml"):
+            if part in names:
+                xml = z.read(part).decode("utf-8", errors="replace")
+                texts.append("".join(re.findall(r"<w:t[^>]*>([^<]*)</w:t>", xml)))
+        chars = "".join(texts) + family
+        subset = _subset_font(font_file, chars)
+
+    guid_hex = uuid.uuid4().hex
+    guid_str = (f"{{{guid_hex[:8].upper()}-{guid_hex[8:12].upper()}-"
+                f"{guid_hex[12:16].upper()}-{guid_hex[16:20].upper()}-"
+                f"{guid_hex[20:32].upper()}}}")
+    odttf = _obfuscate_odttf(subset, guid_str)
+
+    with zipfile.ZipFile(docx_path) as z:
+        items = {n: z.read(n) for n in z.namelist()}
+
+    # 1) [Content_Types].xml：注册 odttf 类型
+    ct = items["[Content_Types].xml"].decode("utf-8")
+    if 'Extension="odttf"' not in ct:
+        ct = ct.replace(
+            "</Types>",
+            '<Default Extension="odttf" '
+            'ContentType="application/vnd.openxmlformats-officedocument.obfuscatedFont"/></Types>')
+    items["[Content_Types].xml"] = ct.encode("utf-8")
+
+    # 2) fontTable.xml：补/改 w:font 条目，挂 embedRegular
+    ft = items["word/fontTable.xml"].decode("utf-8")
+    font_block = (f'<w:font w:name="{family}">'
+                  f'<w:charset w:val="86"/><w:family w:val="roman"/>'
+                  f'<w:pitch w:val="variable"/>'
+                  f'<w:embedRegular r:id="rIdMdfont1" w:fontKey="{guid_str}"/>'
+                  f'</w:font>')
+    if f'w:name="{family}"' in ft:
+        ft = re.sub(rf'<w:font w:name="{re.escape(family)}">.*?</w:font>',
+                    font_block, ft, flags=re.S)
+    else:
+        ft = ft.replace("</w:fonts>", font_block + "</w:fonts>")
+    items["word/fontTable.xml"] = ft.encode("utf-8")
+
+    # 3) fontTable 的 rels
+    rel_name = "word/_rels/fontTable.xml.rels"
+    rel_entry = ('<Relationship Id="rIdMdfont1" Type="http://schemas.openxmlformats.org/'
+                 'officeDocument/2006/relationships/font" Target="fonts/font1.odttf"/>')
+    if rel_name in items:
+        rels = items[rel_name].decode("utf-8").replace(
+            "</Relationships>", rel_entry + "</Relationships>")
+    else:
+        rels = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                + rel_entry + "</Relationships>")
+    items[rel_name] = rels.encode("utf-8")
+
+    # 4) settings.xml：声明文档含内嵌字体（按 schema 序列插在靠前位置）
+    st = items["word/settings.xml"].decode("utf-8")
+    if "embedTrueTypeFonts" not in st:
+        el = "<w:embedTrueTypeFonts/><w:saveSubsetFonts/>"
+        m = re.search(r"<w:settings[^>]*>", st)
+        open_end = m.end()
+        # 找到第一个序位在 embedTrueTypeFonts 之后的子元素，插到它前面
+        succ = re.search(r"<w:(?:defaultTabStop|autoHyphenation|compatability|"
+                         r"compat|rsids|themeFontLang|clrSchemeMapping|shapeDefaults)"
+                         r"[ />]", st[open_end:])
+        if succ:
+            pos = open_end + succ.start()
+            st = st[:pos] + el + st[pos:]
+        else:
+            st = st[:open_end] + el + st[open_end:]
+    items["word/settings.xml"] = st.encode("utf-8")
+
+    # 5) 字体数据
+    items["word/fonts/font1.odttf"] = odttf
+
+    tmp = docx_path.with_suffix(".tmp.docx")
+    with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as z:
+        for name, data in items.items():
+            z.writestr(name, data)
+    tmp.replace(docx_path)
+    return True
+
+
+# ---------------------------------------------------------------------------
 # 各格式转换
 # ---------------------------------------------------------------------------
 
@@ -367,8 +500,19 @@ def convert_docx(src: Path, out: Path, args, tmpdir: Path) -> Path:
         enable_update_fields(doc)
     doc.save(str(out))
 
+    # ---- Heavy 字体内嵌（不依赖收件人安装） ----
+    embedded = False
+    if not args.no_heavy and args.embed_font:
+        font_file = Path(args.emph_font_file) if args.emph_font_file else None
+        if font_file and font_file.is_file():
+            try:
+                embedded = embed_heavy_font(out, args.heading_cjk_font, font_file)
+            except Exception as e:  # 内嵌失败不阻断转换，回退为依赖本机字体
+                log(f"字体内嵌失败（忽略，回退本机字体）：{e}")
+
     log(f"docx 完成：{out.name}（表格 {n_tables}，规范化的强调 run {n_runs}，"
-        f"样式 {'三线表' if args.table_style == 'threeline' else '全框线'}）")
+        f"样式 {'三线表' if args.table_style == 'threeline' else '全框线'}"
+        f"{'，字体内嵌' if embedded else ''}）")
     return out
 
 
@@ -567,6 +711,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
                    help=f"中文标题/加粗字体（默认 {DEFAULT_HEAVY_FONT}）")
     p.add_argument("--no-heavy", action="store_true",
                    help="不使用 Heavy 字体，标题/加粗回退为正文字体伪粗体")
+    p.add_argument("--no-embed-font", dest="embed_font", action="store_false",
+                   help="关闭字体内嵌（默认内嵌 Heavy 字体子集，接收方无需安装）")
     p.add_argument("--emph-font-file", default=str(DEFAULT_HEAVY_FONT_FILE),
                    help="Heavy 字体文件路径（供 XeLaTeX 嵌入；auto 检测失败时需显式给出）")
     p.add_argument("--font-size", type=float, default=12.0, help="正文字号（pt）")

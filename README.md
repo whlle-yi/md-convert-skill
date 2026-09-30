@@ -92,8 +92,9 @@ md-convert-skill/
 │       ├── scripts/               #   md_convert.py 主入口 / make_reference_docx.py
 │       │                          #   样式生成器 / docx2pdf.ps1 Word COM 转 PDF
 │       ├── assets/                #   html-style.css / latex-header.tex
-│       └── references/            #   styles.md / troubleshooting.md / architecture.md
+│       └── references/            #   styles.md / troubleshooting.md
 ├── examples/                      # ② 项目示例与展示样张
+├── docs/architecture.md           #   设计决策（面向维护者）
 ├── tests/                         #   pytest 测试
 ├── .github/                       #   CI 与 Issue 模板
 ├── README.md  CHANGELOG.md        #   项目说明文件
@@ -108,7 +109,7 @@ md-convert-skill/
 
 - [样式体系详解](skills/md-convert/references/styles.md) —— 样式链路、pandoc 样式名对照、伪粗体规避原理、固定 reference.docx
 - [故障排查](skills/md-convert/references/troubleshooting.md) —— 按症状索引的排查手册
-- [架构与设计决策](skills/md-convert/references/architecture.md) —— 为什么是 pandoc + 生成式 reference.docx + 后处理
+- [架构与设计决策](docs/architecture.md) —— 为什么是 pandoc + 生成式 reference.docx + 后处理（面向维护者，存于项目说明区）
 - [更新日志](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md) · [安全策略](SECURITY.md)
 
 ## 测试

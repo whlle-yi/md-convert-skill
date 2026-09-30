@@ -26,6 +26,7 @@ Paragraph / Heading 1-9 / Strong / Source Code / Verbatim Char 等），
 from __future__ import annotations
 
 import argparse
+import re
 import subprocess
 import sys
 import tempfile
@@ -73,11 +74,19 @@ _RPR_AFTER_SHD = (
 )
 
 
+# rFonts 的主题属性：OOXML 中主题属性优先于显式字体，设置显式字体前必须删除，
+# 否则标题编号等西文会被文档主题字体（如 Aptos）顶掉。
+_THEME_FONT_ATTRS = ("w:asciiTheme", "w:hAnsiTheme", "w:eastAsiaTheme", "w:cstheme")
+
+
 def _set_style_fonts(style, *, ascii_font: str, east_asia: str, size_pt: float | None = None,
                      bold: bool | None = None, color_black: bool = False) -> None:
     """同时设置样式的西文字体（ascii/hAnsi）与中文字体（eastAsia）。"""
     rpr = style.element.get_or_add_rPr()
     rfonts = rpr.get_or_add_rFonts()
+    for attr in _THEME_FONT_ATTRS:
+        if rfonts.get(qn(attr)) is not None:
+            del rfonts.attrib[qn(attr)]
     rfonts.set(qn("w:ascii"), ascii_font)
     rfonts.set(qn("w:hAnsi"), ascii_font)
     rfonts.set(qn("w:eastAsia"), east_asia)
@@ -87,6 +96,31 @@ def _set_style_fonts(style, *, ascii_font: str, east_asia: str, size_pt: float |
         style.font.bold = bold
     if color_black:
         style.font.color.rgb = _BLACK
+
+
+def _patch_theme_fonts(doc: Document, latin: str, east_asia: str) -> None:
+    """把 docx 主题字体（major/minor）改为规范字体。
+
+    兜底措施：凡是我们未显式设置字体的样式或标记（如作者/日期、题注编号、
+    列表序号），其主题引用最终都落在 theme1.xml 上——不改主题就会漏出
+    Aptos/Calibri 等主题字体。
+    """
+    for part in doc.part.package.iter_parts():
+        if str(part.partname) == "/word/theme/theme1.xml":
+            xml = part.blob.decode("utf-8", errors="replace")
+
+            def _sub(m: "re.Match[str]") -> str:
+                block = m.group(0)
+                block = re.sub(r'<a:latin typeface="[^"]*"[^>]*/>',
+                               f'<a:latin typeface="{latin}"/>', block, count=1)
+                block = re.sub(r'<a:ea typeface="[^"]*"[^>]*/>',
+                               f'<a:ea typeface="{east_asia}"/>', block, count=1)
+                return block
+
+            xml = re.sub(r"<a:majorFont>.*?</a:majorFont>", _sub, xml, flags=re.S)
+            xml = re.sub(r"<a:minorFont>.*?</a:minorFont>", _sub, xml, flags=re.S)
+            part._blob = xml.encode("utf-8")
+            return
 
 
 def _set_first_line_chars(style, chars: int = 200) -> None:
@@ -126,7 +160,6 @@ def _set_char_shading(style, fill: str) -> None:
 def _set_lang_east_asia(style, lang: str = "zh-CN") -> None:
     rpr = style.element.get_or_add_rPr()
     rfonts = rpr.get_or_add_rFonts()
-    rfonts.set(qn("w:eastAsiaTheme"), "none")  # 防止主题字体覆盖
     lang_el = rpr.find(qn("w:lang"))
     if lang_el is None:
         lang_el = rpr.makeelement(qn("w:lang"), {})
@@ -199,6 +232,7 @@ def build_reference(
 
     seed = _seed_reference_docx(pandoc)
     doc = Document(str(seed))
+    _patch_theme_fonts(doc, latin_font, cjk_font)
 
     # ---- 页面：A4，中文 Word 默认页边距 --------------------------------
     sec = doc.sections[0]
@@ -257,6 +291,7 @@ def build_reference(
     for name in ("Author", "Date", "Subtitle"):
         st = _style_or_none(doc, name)
         if st is not None:
+            _set_style_fonts(st, ascii_font=latin_font, east_asia=cjk_font, color_black=True)
             st.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # ---- 强调 -----------------------------------------------------------
