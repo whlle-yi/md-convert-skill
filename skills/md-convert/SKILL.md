@@ -7,26 +7,36 @@ description: 高质量把 Markdown 转换为 Word、PDF、HTML。用户要求"md
 
 把 Markdown 转成**排版达到交付标准**的 Word / PDF / HTML。电子表格 → xlsx 技能；演示文稿 → pptx 技能；读取 Office 内容 → anydoc-convert 技能。
 
-## 执行规程
+按以下五步执行转换：
 
-**① 源处理与预检**（只做一次）：读一遍 Markdown，检查图片相对路径、公式 `$`/`$$` 成对、YAML 头完整；发现硬伤先与用户确认再转。
+## ① 源处理与预检
 
-**② 确认产出组合**：
+只做一次，与产出几种格式无关。读一遍 Markdown，检查图片相对路径、公式 `$`/`$$` 成对、YAML 头完整；发现硬伤先与用户确认再转。
+
+## ② 确认产出组合
+
 - 用户已明确格式 → 照办，不追问；
 - 未明确 → 询问一次，**默认推荐 PDF**；
 - 识别为学术论文场景 → 直接定为 PDF（XeLaTeX 引擎，不产 Word），**执行前先读 `references/scenario-academic.md`**；
 - 用户不想被询问 → 默认 PDF，交付时说明可补产其他格式。
 
-**③ 按格式路由执行**（多格式用 `--to docx,pdf,html` 一次产出，`-o` 为输出目录）：
+## ③ 按格式路由执行
+
+多格式用 `--to docx,pdf,html` 一次产出，`-o` 为输出目录。路由：
+
 - docx → docx 管线（脚本内自动：生成模板 → pandoc → 修补细节 → 字体内嵌）；
 - pdf → Windows + Word 自动走 Word 引擎（与 docx 版样式一致）；兜底 LibreOffice；
 - html → html 管线；
 - 带参考文献 → 追加 `--citeproc --bibliography 文献.bib`（引用键 `[@id]`，支持 BibTeX/CSL YAML）；
 - 用户要调整排版 → **先读 `references/params.md`**；来源是严格 GFM 时加 `--reader gfm`。
 
-**④ 验收**：对照下方清单逐项检查每种产物；失败 → 查 `references/troubleshooting.md` 定位，调参重转，同一问题最多两次，仍失败则带报错询问用户。
+## ④ 验收
 
-**⑤ 交付**：报告每个产物的路径与大小，以及需要用户动作的点。
+对照下方清单逐项检查每种产物；失败 → 查 `references/troubleshooting.md` 定位，调参重转，同一问题最多两次，仍失败则带报错询问用户。
+
+## ⑤ 交付
+
+报告每个产物的路径与大小，以及需要用户动作的点。
 
 ## 转换后验收清单
 
