@@ -205,7 +205,11 @@ class TestConvertHtml:
 class TestConvertPdf:
     def test_pdf_generated(self, tmp_path):
         out = tmp_path / "demo.pdf"
-        assert to_pdf.main([str(DEMO), "-o", str(out), "--toc"]) == 0
+        argv = [str(DEMO), "-o", str(out), "--toc"]
+        if sys.platform != "win32":
+            # CI 的 Linux 无 SimSun/TNR，使用 TeX Live 与 fonts-noto-cjk 自带字体
+            argv += ["--cjk-font", "Noto Serif CJK SC", "--latin-font", "TeX Gyre Termes"]
+        assert to_pdf.main(argv) == 0
         data = out.read_bytes()
         assert data[:5] == b"%PDF-"
         assert len(data) > 20_000
