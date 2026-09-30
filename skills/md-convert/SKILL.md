@@ -20,21 +20,13 @@ description: 高质量把 Markdown 转换为 Word、PDF、HTML。用户要求"md
 - 识别为学术论文场景 → 直接定为 PDF（XeLaTeX 引擎，不产 Word），**执行前先读 `references/scenario-academic.md`**；
 - 用户不想被询问 → 默认 PDF，交付时说明可补产其他格式。
 
-## ③ 按格式路由执行
+## ③ 组装命令并执行
 
-- docx → docx 管线（脚本全自动，无需手工步骤）；
-- pdf → Windows + Word 自动走 Word 引擎（与 docx 版样式一致）；兜底 LibreOffice；
-- html → html 管线；
-- 正文含引用（`[@id]`）或用户提到文献 → 文献处理见 `references/params.md`；
-- 用户要调整排版 / 来源是严格 GFM → **先读 `references/params.md`**。
+运行入口脚本 `scripts/md_convert.py`。命令形态、全部参数与 PDF 引擎选择见 `references/params.md`。
 
-## ④ 验收
+## ④ 验收与交付
 
-对照下方清单逐项检查每种产物；失败 → 查 `references/troubleshooting.md` 定位，调参重转，同一问题最多两次，仍失败则带报错询问用户。
-
-## ⑤ 交付
-
-报告每个产物的路径与大小，以及需要用户动作的点。
+对照下方清单逐项检查每种产物；失败 → 查 `references/troubleshooting.md` 定位重转（同一问题最多两次）；通过后报告产物路径与大小、需要用户动作的点。
 
 ## 转换后验收清单
 

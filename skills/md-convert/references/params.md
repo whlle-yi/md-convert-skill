@@ -1,7 +1,22 @@
 # 排版参数速查
 
-组装命令前查此表；默认值即规范值，只叠加用户明确要求的覆盖项。
 深度定制（固定 reference.docx、样式机制）见 `styles.md`；转换故障见 `troubleshooting.md`。
+
+## 命令形态
+
+在技能目录内执行：
+
+    python scripts/md_convert.py 文档.md --to docx,pdf,html -o 输出目录/ [参数]
+
+- 单格式：`--to docx`，或 `-o 文件名` 按后缀推断；未指定格式时默认 **pdf**
+- 多格式：`--to docx,pdf,html`（或 `all`）一次扇出，`-o` 为输出目录
+
+## PDF 引擎（--pdf-engine）
+
+- `auto`（默认）：Windows + Word → Word 引擎，与 docx 版样式完全一致
+- `latex`：学术论文 / 公式密集；场景细节见 `scenario-academic.md`
+- `libreoffice`：无 Word 环境兜底
+- 引擎不可用：见 `troubleshooting.md`
 
 ## 默认值与覆盖参数
 
