@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -26,9 +27,11 @@ DEMO = ROOT / "examples" / "demo.md"
 
 
 # ---------------------------------------------------------------------------
-# PDF 测试：依赖本机 TeX Live 与中文/西文字体（SimSun、Times New Roman），
-# 仅在本机（Windows）运行；CI 不测 PDF。
+# PDF 测试：依赖本机 TeX Live 与中文/西文字体（SimSun、Times New Roman）。
+# 有 xelatex 的环境（本地开发机）运行；CI 无 TeX Live，自动跳过。
 # ---------------------------------------------------------------------------
+
+XELATEX = shutil.which("xelatex") is not None
 
 
 # ---------------------------------------------------------------------------
@@ -199,7 +202,7 @@ class TestConvertHtml:
 # pdf 转换（引擎可用时）
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skipif(sys.platform != "win32", reason="PDF 测试在本机运行（Windows + TeX Live）")
+@pytest.mark.skipif(not XELATEX, reason="本机无 xelatex，跳过 PDF 测试")
 class TestConvertPdf:
     def test_pdf_generated(self, tmp_path):
         out = tmp_path / "demo.pdf"
