@@ -64,6 +64,10 @@ python skills/md-convert/scripts/md_convert.py examples/demo.md --to docx --toc 
 
 # 学术论文：只出 XeLaTeX PDF（不产 Word）
 python skills/md-convert/scripts/md_convert.py paper.md --to pdf --pdf-engine latex
+
+# 带参考文献（BibTeX / BibLaTeX / CSL YAML，引用键 [@id]）
+python skills/md-convert/scripts/md_convert.py paper.md --to pdf --pdf-engine latex \
+    --citeproc --bibliography refs.bib
 ```
 
 完整参数见 `python scripts/md_convert.py --help`；示例输入与产出在 [examples/](examples/)。

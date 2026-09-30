@@ -263,3 +263,35 @@ class TestCli:
         md = tmp_path / "e.md"
         md.write_text("# x", encoding="utf-8")
         assert md_convert.main([str(md), "--to", "docx", "-f", "pdf"]) == 2
+
+    def test_citeproc_metadata(self, tmp_path):
+        md = tmp_path / "cite.md"
+        md.write_text(
+            "---\ntitle: 引用测试\n"
+            "references:\n- id: n2008\n"
+            "  title: Bitcoin: A Peer-to-Peer Electronic Cash System\n"
+            "  author:\n  - family: Nakamoto\n    given: Satoshi\n"
+            "  issued:\n    year: 2008\n"
+            "---\n\n去中心化电子现金系统 [@n2008]。\n",
+            encoding="utf-8",
+        )
+        out = tmp_path / "cite.docx"
+        assert md_convert.main([str(md), "-o", str(out), "--citeproc"]) == 0
+        text = "\n".join(p.text for p in Document(str(out)).paragraphs)
+        assert "Nakamoto" in text  # 引文与文末参考文献均已渲染
+
+    def test_citeproc_bibliography_file(self, tmp_path):
+        md = tmp_path / "cite2.md"
+        md.write_text("去中心化电子现金系统 [@n2008]。\n", encoding="utf-8")
+        bib = tmp_path / "refs.yaml"
+        bib.write_text(
+            "references:\n- id: n2008\n  title: Bitcoin\n"
+            "  author:\n  - family: Nakamoto\n    given: Satoshi\n"
+            "  issued:\n    year: 2008\n",
+            encoding="utf-8",
+        )
+        out = tmp_path / "cite2.docx"
+        assert md_convert.main([str(md), "-o", str(out), "--citeproc",
+                                "--bibliography", str(bib)]) == 0
+        text = "\n".join(p.text for p in Document(str(out)).paragraphs)
+        assert "Nakamoto" in text

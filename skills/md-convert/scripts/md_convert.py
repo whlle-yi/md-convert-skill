@@ -459,6 +459,18 @@ def embed_heavy_font(docx_path: Path, family: str, font_file: Path) -> bool:
 # 各格式转换
 # ---------------------------------------------------------------------------
 
+def _citeproc_args(args) -> list[str]:
+    """参考文献处理参数（三条管线共用）；未指定文献库时依赖文档 metadata。"""
+    if not getattr(args, "citeproc", False):
+        return []
+    out = ["--citeproc"]
+    if args.bibliography:
+        out += ["--bibliography", str(args.bibliography)]
+    if args.csl:
+        out += ["--csl", str(args.csl)]
+    return out
+
+
 def convert_docx(src: Path, out: Path, args, tmpdir: Path) -> Path:
     ref = build_reference(
         tmpdir / "reference.docx",
@@ -481,6 +493,7 @@ def convert_docx(src: Path, out: Path, args, tmpdir: Path) -> Path:
     ]
     if not args.highlight:
         pandoc_args.append("--no-highlight")
+    pandoc_args += _citeproc_args(args)
     if args.toc:
         pandoc_args += ["--toc", "--toc-depth", str(args.toc_depth),
                         "-M", "toc-title=目录"]
@@ -610,6 +623,7 @@ def convert_pdf(src: Path, out: Path, args, tmpdir: Path) -> Path:
             pandoc_args += ["-V", f"fontsize={int(args.font_size)}pt"]
         if not args.highlight:
             pandoc_args.append("--no-highlight")
+        pandoc_args += _citeproc_args(args)
         if args.toc:
             pandoc_args += ["--toc", "--toc-depth", str(args.toc_depth),
                             "-M", "toc-title=目录"]
@@ -676,6 +690,7 @@ def convert_html(src: Path, out: Path, args, tmpdir: Path) -> Path:
         pandoc_args += ["-c", str(css.resolve())]
     if not args.highlight:
         pandoc_args.append("--no-highlight")
+    pandoc_args += _citeproc_args(args)
     if args.toc:
         pandoc_args += ["--toc", "--toc-depth", str(args.toc_depth)]
     if args.number_sections:
@@ -728,6 +743,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
                    help="代码语法高亮（默认关闭，保持黑白正式文档风格）")
     p.add_argument("--pdf-engine", choices=("auto", "word", "latex", "libreoffice"),
                    default="auto", help="PDF 引擎")
+    p.add_argument("--citeproc", action="store_true",
+                   help="启用参考文献处理（pandoc citeproc；配合 --bibliography）")
+    p.add_argument("--bibliography",
+                   help="参考文献库文件（BibTeX / BibLaTeX / CSL JSON / YAML），相对当前目录")
+    p.add_argument("--csl", help="引用样式 CSL 文件（可选，默认按文档语言）")
     p.add_argument("--dpi", type=int, default=96, help="图片分辨率换算 dpi")
     p.add_argument("--lang", default="zh-CN", help="文档语言（影响断行/校对）")
     p.add_argument("--verbose", action="store_true", help="输出详细日志")

@@ -25,6 +25,7 @@ description: 高质量把 Markdown 转换为 Word(docx)、PDF、HTML。当用户
 - docx → docx 管线（脚本内自动：生成模板 → pandoc → 修补细节 → 字体内嵌）；
 - pdf → 引擎选择：Windows + Word 自动走 Word 引擎；学术论文、公式密集 → `--pdf-engine latex`；兜底 LibreOffice；
 - html → html 管线；
+- 带参考文献 → 追加 `--citeproc --bibliography 文献.bib`（支持 BibTeX/BibLaTeX/CSL JSON/YAML，引用键写 `[@id]`；论文场景默认要问一句文献库在哪）；
 - 多种格式用 `--to docx,pdf,html`（或 `all`）一次产出，`-o` 给输出目录。
 
 **④ 验收**：对照下方「转换后验收清单」逐项检查每种产物；失败 → 查 `references/troubleshooting.md` 定位 → 调参数重转，同一问题最多重试两次，仍失败则带着报错信息询问用户。

@@ -5,6 +5,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- `--citeproc` / `--bibliography` / `--csl`：参考文献处理透传（pandoc citeproc），
+  docx / pdf / html 三条管线均可用，服务学术论文路线。
+
 ### Changed
 
 - CLI 支持 `--to docx,pdf,html|all` 一次产出多种格式（`-o` 为输出目录）；
