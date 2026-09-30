@@ -1,0 +1,25 @@
+name: 功能建议
+description: 新格式、新样式档案或其他改进
+labels: [enhancement]
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景
+      description: 什么文档、给谁看、现在为什么做不好
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望方案
+      description: 期望的命令形态 / 排版效果，最好附示意
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: 涉及范围
+      options:
+        - label: 新输出格式
+        - label: 样式/排版
+        - label: 命令行接口
+        - label: 文档

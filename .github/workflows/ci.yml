@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Toolchain versions
+        run: |
+          python --version
+          pandoc --version
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest -v
+
+      - name: Smoke convert examples
+        run: |
+          python scripts/md_convert.py examples/demo.md -o dist/demo.docx --toc
+          python scripts/md_convert.py examples/demo.md -o dist/demo.html --toc
+        shell: bash
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: outputs-${{ matrix.os }}
+          path: dist/
+          retention-days: 7
+          if-no-files-found: warn

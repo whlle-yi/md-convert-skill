@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# 构建与临时产物（examples/ 下的展示产物除外，属版本管理内容）
+dist/
+build/
+tmp/
+temp/
+*.log
+
+# Office 锁文件与临时文件
+~$*
+*.~docx
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
