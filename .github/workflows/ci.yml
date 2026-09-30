@@ -41,6 +41,13 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install pandoc --yes --no-progress
 
+      - name: TeX debug (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          kpsewhich soul.sty || echo "kpsewhich: soul.sty NOT FOUND"
+          dpkg -S soul.sty || echo "dpkg: soul.sty 不属于任何已装包"
+          apt-cache search ^soul$ || true
+
       - name: Toolchain versions
         run: |
           python --version
