@@ -17,6 +17,9 @@
 | 目录 | 默认无 | `--toc --toc-depth 3` |
 | 页面 | A4，上下 2.54cm、左右 3.17cm | — |
 | 图片分辨率 | 96 dpi | `--dpi` |
+| 输入格式 | `markdown+east_asian_line_breaks`（中文硬换行不产生多余空格） | `--reader gfm`（严格 GFM 源） |
+| 参考文献 | 默认关闭 | `--citeproc` + `--bibliography 文献.bib`（BibTeX / BibLaTeX / CSL JSON / YAML）；`--csl` 指定样式；引用键写 `[@id]` |
+| 多格式产出 | 单格式 | `--to docx,pdf,html`（或 `all`）一次扇出，`-o` 为输出目录 |
 
 ## 常用组合
 

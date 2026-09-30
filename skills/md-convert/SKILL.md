@@ -22,13 +22,11 @@ description: 高质量把 Markdown 转换为 Word、PDF、HTML。用户要求"md
 
 ## ③ 按格式路由执行
 
-多格式用 `--to docx,pdf,html` 一次产出，`-o` 为输出目录。路由：
-
-- docx → docx 管线（脚本内自动：生成模板 → pandoc → 修补细节 → 字体内嵌）；
+- docx → docx 管线（脚本全自动，无需手工步骤）；
 - pdf → Windows + Word 自动走 Word 引擎（与 docx 版样式一致）；兜底 LibreOffice；
 - html → html 管线；
-- 带参考文献 → 追加 `--citeproc --bibliography 文献.bib`（引用键 `[@id]`，支持 BibTeX/CSL YAML）；
-- 用户要调整排版 → **先读 `references/params.md`**；来源是严格 GFM 时加 `--reader gfm`。
+- 正文含引用（`[@id]`）或用户提到文献 → 文献处理见 `references/params.md`；
+- 用户要调整排版 / 来源是严格 GFM → **先读 `references/params.md`**。
 
 ## ④ 验收
 

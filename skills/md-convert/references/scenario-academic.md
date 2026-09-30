@@ -12,8 +12,8 @@
 
 ## 参考文献
 
-- 追加 `--citeproc --bibliography 文献.bib`（BibTeX / BibLaTeX / CSL JSON / YAML）
-- 引用键在正文写 `[@id]`；`--csl` 可指定期刊引用样式
+- 追加文献处理参数（用法见 `params.md`「参考文献」行）
+- 引用键在正文写 `[@id]`；`--csl` 可指定期刊样式
 - 未给定文献库时**先问一句**文献库在哪，不要假设没有
 - 文献键含特殊字符（冒号、引号）导致转换失败时，见 `troubleshooting.md`
 
