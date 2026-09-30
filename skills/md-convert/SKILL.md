@@ -13,41 +13,33 @@ description: 高质量把 Markdown 转换为 Word(docx)、PDF、HTML。当用户
 
 按"**源处理 → 确认产出组合 → 按格式路由执行**"三段走，之后验收、交付：
 
-**① 源处理与预检**（只做一次，与产出几种格式无关）：读一遍 Markdown——图片相对路径是否存在、公式 `$`/`$$` 是否成对、YAML 头是否完整、是否学术论文等特定场景；发现硬伤先与用户确认再转。
+**① 源处理与预检**（只做一次，与产出几种格式无关）：读一遍 Markdown——图片相对路径是否存在、公式 `$`/`$$` 是否成对、YAML 头是否完整；发现硬伤先与用户确认再转。
 
 **② 确认产出组合**：
-- 用户已明确要哪些格式（"转 word"、"给我 pdf 和 html"）→ 按说的办，不再追问；
-- 未明确 → 询问一次：**默认推荐 PDF**（打印/分发保真度最高），可改 Word / HTML / 多件套；
-- 识别为学术论文场景（期刊/学位论文/竞赛论文）→ 直接定为 **XeLaTeX PDF**，不产 Word；
+- 用户已明确要哪些格式 → 按说的办，不再追问；
+- 未明确 → 询问一次，**默认推荐 PDF**；
+- **识别为学术论文场景 → 先读 `references/scenario-academic.md`，按场景路由执行**（只出 XeLaTeX PDF，不产 Word）；
 - 用户表达过不想被询问 → 默认 PDF 并在交付时说明可补产其他格式。
 
-**③ 按格式路由执行**：每种格式有自己的处理方式和失败分支——
+**③ 按格式路由执行**：
 - docx → docx 管线（脚本内自动：生成模板 → pandoc → 修补细节 → 字体内嵌）；
-- pdf → 引擎选择：Windows + Word 自动走 Word 引擎（与 docx 版样式完全一致）；学术论文、公式密集 → `--pdf-engine latex`；兜底 LibreOffice；
+- pdf → 引擎选择：Windows + Word 自动走 Word 引擎（与 docx 版样式完全一致）；兜底 LibreOffice；
 - html → html 管线；
-- 带参考文献 → 追加 `--citeproc --bibliography 文献.bib`（BibTeX/BibLaTeX/CSL JSON/YAML，引用键写 `[@id]`；论文场景默认要问一句文献库在哪）；
 - 多种格式用 `--to docx,pdf,html`（或 `all`）一次产出，`-o` 给输出目录；
-- 排版参数默认即规范值（见下表），只叠加用户明确要求的覆盖项；来源是严格 GFM 时加 `--reader gfm`。走入口脚本，不要手写 pandoc 命令绕过样式体系。
+- 用户要调整排版 → **先读 `references/params.md`** 再组装参数；来源是严格 GFM 时加 `--reader gfm`。
 
 **④ 验收**：对照下方「转换后验收清单」逐项检查每种产物；失败 → 查 `references/troubleshooting.md` 定位 → 调参数重转，同一问题最多重试两次，仍失败则带着报错信息询问用户。
 
 **⑤ 交付**：报告每个产物的路径与大小，说明需要用户动作的点（如 Word 打开带目录的文档时点一次"更新域"）。
 
-## 排版规范（默认值）
+**路由总表**：
 
-| 项目 | 默认 | 覆盖参数 |
-|---|---|---|
-| 中文正文 | 宋体 SimSun | `--cjk-font` |
-| 西文/数字 | Times New Roman | `--latin-font` |
-| 标题/加粗中文 | 思源宋体 Heavy X，**不伪粗** | `--heading-cjk-font` / `--no-heavy` |
-| 中文斜体（HTML/PDF） | 楷体，禁用合成斜体 | — |
-| 代码 | Consolas + 浅灰底纹，语法高亮默认关 | `--mono-font`；`--highlight` 开启 |
-| 正文 | 12pt（小四）、1.5 倍行距、首行缩进 2 字符 | `--font-size` `--line-spacing` `--no-body-indent` |
-| 表格 | 三线表；表内文字单倍行距 | `--table-style grid` 换全框线 |
-| 目录 | 默认无 | `--toc --toc-depth 3` |
-| 页面 | A4，上下 2.54cm、左右 3.17cm | — |
-
-进阶定制（固定 reference.docx、字重来源调整）见 `references/styles.md`。
+| 何时读 | 文件 |
+|---|---|
+| 调排版参数 / 查默认值 | `references/params.md` |
+| 学术论文场景 | `references/scenario-academic.md` |
+| 转换报错 / 产物异常 | `references/troubleshooting.md` |
+| 深度样式定制（固化模板） | `references/styles.md` |
 
 ## 转换后验收清单
 
