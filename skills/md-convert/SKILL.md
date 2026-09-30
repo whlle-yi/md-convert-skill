@@ -1,38 +1,43 @@
 ---
 name: md-convert
-description: 高质量把 Markdown 转换为 Word(docx)、PDF、HTML。当用户要求"md 转 word / docx / pdf / html"、"导出成 Word"、"把报告/论文/文档转成 XX 格式"、"生成可提交的正式文档"，或任何以 .md 为源、以常见文档格式为目标的转换时使用。中文宋体 + Times New Roman、思源宋体 Heavy 强调（无伪粗体）、三线表、原生公式、自动目录。
+description: 高质量把 Markdown 转换为 Word、PDF、HTML。用户要求"md 转 word/pdf/html"、"导出成 Word/PDF"、"生成可提交的正式文档/论文"，或任何以 .md 为源转成常见文档格式的场景都使用。中文排版规范：宋体 + Times New Roman、Heavy 强调无伪粗体、三线表、原生公式。
 ---
 
 # md-convert — Markdown 高质量转换
 
-把 Markdown 转成**排版达到交付标准**的 Word / PDF / HTML：受控样式、中文排版规范（宋体 + Times New Roman、Heavy 字重强调、首行缩进、三线表）、原生公式、可刷新目录。
-
-**不适用**：目标是电子表格 → 用 xlsx 技能；目标是指南/PPT → 用 pptx 技能；只是读取 Office 文档内容 → 用 anydoc-convert 技能。
+把 Markdown 转成**排版达到交付标准**的 Word / PDF / HTML。电子表格 → xlsx 技能；演示文稿 → pptx 技能；读取 Office 内容 → anydoc-convert 技能。
 
 ## 执行规程
 
-按"**源处理 → 确认产出组合 → 按格式路由执行**"三段走，之后验收、交付：
-
-**① 源处理与预检**（只做一次，与产出几种格式无关）：读一遍 Markdown——图片相对路径是否存在、公式 `$`/`$$` 是否成对、YAML 头是否完整；发现硬伤先与用户确认再转。
+**① 源处理与预检**（只做一次）：读一遍 Markdown，检查图片相对路径、公式 `$`/`$$` 成对、YAML 头完整；发现硬伤先与用户确认再转。
 
 **② 确认产出组合**：
-- 用户已明确要哪些格式 → 按说的办，不再追问；
+- 用户已明确格式 → 照办，不追问；
 - 未明确 → 询问一次，**默认推荐 PDF**；
-- **识别为学术论文场景 → 先读 `references/scenario-academic.md`，按场景路由执行**（只出 XeLaTeX PDF，不产 Word）；
-- 用户表达过不想被询问 → 默认 PDF 并在交付时说明可补产其他格式。
+- 识别为学术论文场景 → 直接定为 PDF（XeLaTeX 引擎，不产 Word），**执行前先读 `references/scenario-academic.md`**；
+- 用户不想被询问 → 默认 PDF，交付时说明可补产其他格式。
 
-**③ 按格式路由执行**：
+**③ 按格式路由执行**（多格式用 `--to docx,pdf,html` 一次产出，`-o` 为输出目录）：
 - docx → docx 管线（脚本内自动：生成模板 → pandoc → 修补细节 → 字体内嵌）；
-- pdf → 引擎选择：Windows + Word 自动走 Word 引擎（与 docx 版样式完全一致）；兜底 LibreOffice；
+- pdf → Windows + Word 自动走 Word 引擎（与 docx 版样式一致）；兜底 LibreOffice；
 - html → html 管线；
-- 多种格式用 `--to docx,pdf,html`（或 `all`）一次产出，`-o` 给输出目录；
-- 用户要调整排版 → **先读 `references/params.md`** 再组装参数；来源是严格 GFM 时加 `--reader gfm`。
+- 带参考文献 → 追加 `--citeproc --bibliography 文献.bib`（引用键 `[@id]`，支持 BibTeX/CSL YAML）；
+- 用户要调整排版 → **先读 `references/params.md`**；来源是严格 GFM 时加 `--reader gfm`。
 
-**④ 验收**：对照下方「转换后验收清单」逐项检查每种产物；失败 → 查 `references/troubleshooting.md` 定位 → 调参数重转，同一问题最多重试两次，仍失败则带着报错信息询问用户。
+**④ 验收**：对照下方清单逐项检查每种产物；失败 → 查 `references/troubleshooting.md` 定位，调参重转，同一问题最多两次，仍失败则带报错询问用户。
 
-**⑤ 交付**：报告每个产物的路径与大小，说明需要用户动作的点（如 Word 打开带目录的文档时点一次"更新域"）。
+**⑤ 交付**：报告每个产物的路径与大小，以及需要用户动作的点。
 
-**路由总表**：
+## 转换后验收清单
+
+1. **文件能正常打开**，大小合理（>5KB 说明非空）。
+2. **公式**：docx 中是可编辑的 Word 公式（OMML）；PDF 中公式无缺字。
+3. **表格**：三线表边框正确（顶/底粗线、表头下细线、无竖线），表内文字单倍行距。
+4. **目录**（若有）：Word 打开时点一次"更新域"后页码正确；PDF（Word 引擎）页码已自动刷新。
+5. **字体**：中文无豆腐块；强调是 Heavy 字重而非拉伸加粗。
+6. **图片**：显示且未变形。
+
+## 文件路由
 
 | 何时读 | 文件 |
 |---|---|
@@ -40,16 +45,3 @@ description: 高质量把 Markdown 转换为 Word(docx)、PDF、HTML。当用户
 | 学术论文场景 | `references/scenario-academic.md` |
 | 转换报错 / 产物异常 | `references/troubleshooting.md` |
 | 深度样式定制（固化模板） | `references/styles.md` |
-
-## 转换后验收清单
-
-执行规程第 ④ 步的检查项，交付前逐项确认：
-
-1. **文件能正常打开**，大小合理（>5KB 说明内容非空）。
-2. **公式**：docx 中是可编辑的 Word 公式（OMML），不是乱码或图片；PDF 中公式无缺字。
-3. **表格**：三线表边框正确（顶/底粗线、表头下细线、无竖线），表内文字单倍行距。
-4. **目录**（若有）：Word 打开时会提示"是否更新域"→ 点是后页码正确；PDF（Word 引擎）页码已自动刷新。
-5. **字体**：中文无豆腐块；强调文字是 Heavy 字重而非拉伸加粗。
-6. **图片**：显示且未变形（超宽图受页面宽度约束）。
-
-以上任一项不过：查 `references/troubleshooting.md` 定位后调参重转。
