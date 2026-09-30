@@ -244,3 +244,22 @@ class TestCli:
         md.write_text("# 标题\n\n正文**加粗**测试。", encoding="utf-8")
         assert md_convert.main([str(md), "-o", str(tmp_path / "b.html")]) == 0
         assert (tmp_path / "b.html").exists()
+
+    def test_multi_output(self, tmp_path):
+        md = tmp_path / "c.md"
+        md.write_text("# 多产出\n\n正文**加粗**测试。", encoding="utf-8")
+        outdir = tmp_path / "out"
+        assert md_convert.main([str(md), "--to", "docx,html", "-o", str(outdir)]) == 0
+        assert (outdir / "c.docx").exists()
+        assert (outdir / "c.html").exists()
+        assert not (outdir / "c.pdf").exists()  # 未要求的格式不产出
+
+    def test_to_unknown_format(self, tmp_path):
+        md = tmp_path / "d.md"
+        md.write_text("# x", encoding="utf-8")
+        assert md_convert.main([str(md), "--to", "docx,xyz"]) == 2
+
+    def test_to_conflicts_with_format(self, tmp_path):
+        md = tmp_path / "e.md"
+        md.write_text("# x", encoding="utf-8")
+        assert md_convert.main([str(md), "--to", "docx", "-f", "pdf"]) == 2

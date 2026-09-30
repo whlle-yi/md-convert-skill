@@ -696,9 +696,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     p.add_argument("input", help="输入 Markdown 文件")
-    p.add_argument("-o", "--output", help="输出文件（默认与输入同目录同名）")
+    p.add_argument("-o", "--output",
+                   help="输出文件；--to 多产出时为输出目录（默认与输入同目录）")
     p.add_argument("-f", "--format", choices=("docx", "pdf", "html"),
                    help="目标格式（默认 docx，或按 -o 后缀推断）")
+    p.add_argument("--to",
+                   help="一次产出多种格式，逗号分隔（如 docx,pdf,html 或 all）；与 -f 二选一")
     p.add_argument("--reader", default=DEFAULT_FROM,
                    help=f"pandoc 输入格式（默认 {DEFAULT_FROM}；纯 GFM 用 gfm）")
     p.add_argument("--toc", action="store_true", help="生成目录（Word 中打开后自动刷新页码）")
@@ -733,6 +736,43 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _plan_outputs(args, src: Path) -> dict[str, Path] | None:
+    """解析目标格式集合与各输出路径；出错打印信息并返回 None。"""
+    if args.to and args.format:
+        print("[md-convert] 错误：--to 与 -f/--format 二选一", file=sys.stderr)
+        return None
+    if args.to:
+        fmts = [f.strip().lower() for f in args.to.split(",") if f.strip()]
+        if fmts == ["all"]:
+            fmts = ["docx", "pdf", "html"]
+        bad = [f for f in fmts if f not in ("docx", "pdf", "html")]
+        if bad:
+            print(f"[md-convert] 错误：--to 含未知格式 {bad}，支持 docx / pdf / html", file=sys.stderr)
+            return None
+        fmts = list(dict.fromkeys(fmts))  # 去重保序
+        if args.output:
+            out_base = Path(args.output)
+            if out_base.suffix:
+                print("[md-convert] 错误：--to 多产出时 -o 应为目录（不带扩展名）", file=sys.stderr)
+                return None
+        else:
+            out_base = src.parent
+        return {f: out_base / (src.stem + "." + f) for f in fmts}
+
+    fmt = args.format
+    if args.output:
+        out = Path(args.output)
+        if fmt is None:
+            fmt = out.suffix.lstrip(".").lower()
+    else:
+        fmt = fmt or "docx"
+        out = src.with_suffix("." + fmt)
+    if fmt not in ("docx", "pdf", "html"):
+        print(f"[md-convert] 错误：无法识别的输出格式“{fmt}”，支持 docx / pdf / html", file=sys.stderr)
+        return None
+    return {fmt: out}
+
+
 def main(argv: list[str] | None = None) -> int:
     for stream in (sys.stdout, sys.stderr):
         try:
@@ -746,47 +786,44 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[md-convert] 错误：输入文件不存在：{src}", file=sys.stderr)
         return 2
 
-    fmt = args.format
-    if args.output:
-        out = Path(args.output)
-        if fmt is None:
-            fmt = out.suffix.lstrip(".").lower()
-    else:
-        if fmt is None:
-            fmt = "docx"
-        out = src.with_suffix("." + fmt)
-    if fmt not in ("docx", "pdf", "html"):
-        print(f"[md-convert] 错误：无法识别的输出格式“{fmt}”，支持 docx / pdf / html", file=sys.stderr)
+    outs = _plan_outputs(args, src)
+    if outs is None:
         return 2
-    if out.exists():
-        try:
-            with open(out, "r+b"):
-                pass
-        except PermissionError:
-            print(f"[md-convert] 错误：输出文件被其他程序占用，无法覆盖：{out}\n"
-                  "  请关闭正在预览/编辑该文件的程序（PDF 阅读器、Word、预览窗格等）后重试。",
-                  file=sys.stderr)
-            return 3
-    args.format = fmt
-    out.parent.mkdir(parents=True, exist_ok=True)
+    for out in outs.values():
+        out.parent.mkdir(parents=True, exist_ok=True)
+        if out.exists():
+            try:
+                with open(out, "r+b"):
+                    pass
+            except PermissionError:
+                print(f"[md-convert] 错误：输出文件被其他程序占用，无法覆盖：{out}\n"
+                      "  请关闭正在预览/编辑该文件的程序（PDF 阅读器、Word、预览窗格等）后重试。",
+                      file=sys.stderr)
+                return 3
 
     require_pandoc()
     tmpdir = Path(tempfile.mkdtemp(prefix="md-convert-"))
+    failed = []
     try:
-        if fmt == "docx":
-            convert_docx(src, out, args, tmpdir)
-        elif fmt == "pdf":
-            convert_pdf(src, out, args, tmpdir)
-        else:
-            convert_html(src, out, args, tmpdir)
-    except ConvertError as e:
-        print(f"[md-convert] 错误：{e}", file=sys.stderr)
-        return 1
+        for fmt, out in outs.items():
+            try:
+                if fmt == "docx":
+                    convert_docx(src, out, args, tmpdir)
+                elif fmt == "pdf":
+                    convert_pdf(src, out, args, tmpdir)
+                else:
+                    convert_html(src, out, args, tmpdir)
+            except ConvertError as e:
+                print(f"[md-convert] 错误：{e}", file=sys.stderr)
+                failed.append(fmt)
     finally:
         if args.keep_temp:
             log(f"临时目录已保留：{tmpdir}")
         else:
             shutil.rmtree(tmpdir, ignore_errors=True)
+    if failed:
+        log(f"{len(failed)} 种格式转换失败：{'、'.join(failed)}")
+        return 1
     return 0
 
 

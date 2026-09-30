@@ -11,6 +11,7 @@
 
 ## 特性
 
+- **一次源处理、按需扇出**：`--to docx,pdf,html` 一个命令产出多种格式，输出统一进指定目录；
 - **受控样式体系**：docx 外观由程序化生成的 reference.docx 决定，每次转换结果一致可复现，不依赖操作系统的 Word 模板。
 - **中文排版规范**：正文宋体、西文/数字 Times New Roman；标题与加粗使用思源宋体 Heavy，**通过 run 拆分实现"中文 Heavy 字重 + 西文 TNR Bold"，杜绝宋体伪粗体**；首行缩进 2 字符按字符单位自适应字号。
 - **学术级表格**：默认三线表（顶/底 1.5pt、表头下 0.75pt、无竖线），可切换全框线。
@@ -54,18 +55,15 @@ xcopy /E /I md-convert-skill\skills\md-convert "%USERPROFILE%\.agents\skills\md-
 ```bash
 pip install python-docx
 
-# 转 Word：宋体 + TNR、Heavy 强调、三线表、首行缩进，全部默认生效
-python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.docx
+# 一次源处理，按需扇出多种格式（推荐）
+python skills/md-convert/scripts/md_convert.py examples/demo.md --to docx,pdf,html -o temp/output/
 
-# 加目录、标题编号
-python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.docx --toc --number-sections
+# 只要单种格式
+python skills/md-convert/scripts/md_convert.py examples/demo.md --to docx
+python skills/md-convert/scripts/md_convert.py examples/demo.md --to docx --toc --number-sections
 
-# 转 PDF（Windows 自动用 Word 引擎；学术公式用 --pdf-engine latex）
-python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.pdf
-python skills/md-convert/scripts/md_convert.py paper.md -o paper.pdf --pdf-engine latex
-
-# 转独立 HTML
-python skills/md-convert/scripts/md_convert.py examples/demo.md -o temp/output/demo.html --toc
+# 学术论文：只出 XeLaTeX PDF（不产 Word）
+python skills/md-convert/scripts/md_convert.py paper.md --to pdf --pdf-engine latex
 ```
 
 完整参数见 `python scripts/md_convert.py --help`；示例输入与产出在 [examples/](examples/)。
