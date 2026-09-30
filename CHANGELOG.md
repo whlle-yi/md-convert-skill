@@ -7,6 +7,8 @@
 
 ### Added
 
+- PDF 数学字体与正文同风格：优先 STIX Two Math，回退 TeX Gyre Termes Math
+  （`to_pdf.py` 动态导言与 `assets/latex-header.tex` 同步）。
 - `--citeproc` / `--bibliography` / `--csl`：参考文献处理透传（pandoc citeproc），
   docx / pdf / html 三条管线均可用，服务学术论文路线。
 

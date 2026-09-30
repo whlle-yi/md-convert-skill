@@ -25,6 +25,16 @@
 }
 \newcommand{\key}[1]{{\CJKfamily{emphsong}\bfseries #1}}
 
+% ---- 数学字体：与正文（Times 系）同风格 --------------------------------------
+% pandoc 的 xelatex 模板已加载 unicode-math；按可用性回退。
+\IfFontExistsTF{STIX Two Math}{%
+  \setmathfont{STIX Two Math}%
+}{%
+  \IfFontExistsTF{TeX Gyre Termes Math}{%
+    \setmathfont{TeX Gyre Termes Math}%
+  }{}%
+}
+
 % 本机有字体文件但未安装到系统时，把上面的 \IfFontExistsTF 块替换为：
 %   \setCJKfamilyfont{emphsong}{NotoSerifSC-HeavyX.ttf}%
 %     [Path=C:/path/to/fonts/, BoldFont=NotoSerifSC-HeavyX.ttf]

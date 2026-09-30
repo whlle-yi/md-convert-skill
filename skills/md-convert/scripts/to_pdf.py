@@ -58,6 +58,11 @@ def build_latex_header(args) -> str:
             f"\\setCJKfamilyfont{{emphsong}}{{{font_name}}}[Path={font_dir}/, BoldFont={font_name}]"
         )
     lines.append("\\newcommand{\\key}[1]{{\\CJKfamily{emphsong}\\bfseries #1}}")
+    # 数学字体与正文同风格（Times 系）；pandoc 的 xelatex 模板已加载 unicode-math
+    lines.append(
+        "\\IfFontExistsTF{STIX Two Math}{\\setmathfont{STIX Two Math}}"
+        "{\\IfFontExistsTF{TeX Gyre Termes Math}{\\setmathfont{TeX Gyre Termes Math}}{}}"
+    )
     # 首行缩进 2 字符（2 个汉字宽度 = 2em，与 docx 的 firstLineChars=200 对应）
     lines.append("\\AtBeginDocument{\\setlength{\\parindent}{2em}}")
     return "\n".join(lines) + "\n"
