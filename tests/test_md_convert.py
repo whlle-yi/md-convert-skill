@@ -7,7 +7,6 @@
 
 from __future__ import annotations
 
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -42,7 +41,9 @@ def _word_available() -> bool:
         return False
 
 
-PDF_ENGINE = "word" if _word_available() else ("latex" if shutil.which("xelatex") else None)
+# 仅探测 Word 引擎：LaTeX 引擎依赖本机中/西文字体（SimSun、Times New Roman），
+# CI 的 Linux 镜像两者皆无，自动跳过；本地开发环境可完整覆盖。
+PDF_ENGINE = "word" if _word_available() else None
 
 
 # ---------------------------------------------------------------------------

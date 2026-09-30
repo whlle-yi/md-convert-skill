@@ -22,6 +22,16 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install pandoc (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          curl -sL https://github.com/jgm/pandoc/releases/download/3.9.0.2/pandoc-3.9.0.2-linux-amd64.tar.gz \
+            | sudo tar xz --strip-components=1 -C /usr/local
+
+      - name: Install pandoc (Windows)
+        if: runner.os == 'Windows'
+        run: choco install pandoc --yes --no-progress
+
       - name: Toolchain versions
         run: |
           python --version
