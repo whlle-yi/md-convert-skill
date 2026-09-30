@@ -269,7 +269,7 @@ class TestCli:
         md.write_text(
             "---\ntitle: 引用测试\n"
             "references:\n- id: n2008\n"
-            "  title: Bitcoin: A Peer-to-Peer Electronic Cash System\n"
+            '  title: "Bitcoin: A Peer-to-Peer Electronic Cash System"\n'
             "  author:\n  - family: Nakamoto\n    given: Satoshi\n"
             "  issued:\n    year: 2008\n"
             "---\n\n去中心化电子现金系统 [@n2008]。\n",
