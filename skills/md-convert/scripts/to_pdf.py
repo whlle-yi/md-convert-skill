@@ -39,7 +39,7 @@ def build_latex_header(args) -> str:
     # pandoc 用 soul 实现删除线（\st），soul 不支持中文；
     # 改用 ulem 的 \sout（xeCJKfntef 已使其支持中文）
     lines.append("\\usepackage[normalem]{ulem}")
-    lines.append("\\renewcommand{\\st}[1]{\\sout{#1}}")
+    lines.append("\\providecommand{\\st}[1]{\\sout{#1}}")
     emph_file = Path(args.emph_font_file) if args.emph_font_file else None
     if args.no_heavy or emph_file is None or not emph_file.is_file():
         lines.append(f"\\setCJKmainfont{{{args.cjk_font}}}[AutoFakeBold=2.5]")
@@ -63,6 +63,15 @@ def build_latex_header(args) -> str:
     return "\n".join(lines) + "\n"
 
 
+LUA_STRIKEOUT = """\
+-- soul 宏包已从 TeX Live 2023 移除且不支持中文；
+-- 把删除线改写为 ulem 的 \\sout（配合 xeCJKfntef 支持中文），避免加载 soul。
+function Strikeout(el)
+  return pandoc.RawInline("tex", "\\\\sout{" .. pandoc.utils.stringify(el) .. "}")
+end
+"""
+
+
 def convert_pdf(src: Path, out: Path, args, tmpdir: Path) -> Path:
     if not shutil.which("xelatex"):
         raise common.ConvertError(
@@ -71,10 +80,13 @@ def convert_pdf(src: Path, out: Path, args, tmpdir: Path) -> Path:
         )
     header = tmpdir / "header.tex"
     header.write_text(build_latex_header(args), encoding="utf-8")
+    lua = tmpdir / "strikeout.lua"
+    lua.write_text(LUA_STRIKEOUT, encoding="utf-8")
     pandoc_args = [
         str(src), "-f", args.reader,
         "--pdf-engine", "xelatex",
         "-H", str(header),
+        "--lua-filter", str(lua),
         "-V", "geometry:top=2.54cm", "-V", "geometry:bottom=2.54cm",
         "-V", "geometry:left=3.17cm", "-V", "geometry:right=3.17cm",
         "-V", f"linestretch={args.line_spacing}",
