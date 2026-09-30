@@ -93,9 +93,8 @@ md-convert-skill/
 ├── examples/                      # ② 项目示例与展示样张
 ├── docs/architecture.md           #   设计决策（面向维护者）
 ├── tests/                         #   pytest 测试
-├── .github/                       #   CI 与 Issue 模板
-├── README.md  CHANGELOG.md        #   项目说明文件
-├── CONTRIBUTING.md  SECURITY.md  LICENSE
+├── .github/workflows/             #   CI
+├── README.md  CHANGELOG.md  LICENSE
 └── temp/                          # ③ 本地过程产物（gitignore，不入库）
     ├── output/                    #   手动转换产物
     ├── render/                    #   视觉验收渲染图
@@ -107,7 +106,7 @@ md-convert-skill/
 - [样式体系详解](skills/md-convert/references/styles.md) —— 样式链路、pandoc 样式名对照、伪粗体规避原理、固定 reference.docx
 - [故障排查](skills/md-convert/references/troubleshooting.md) —— 按症状索引的排查手册
 - [架构与设计决策](docs/architecture.md) —— 为什么是 pandoc + 生成式 reference.docx + 后处理（面向维护者，存于项目说明区）
-- [更新日志](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md) · [安全策略](SECURITY.md)
+- [更新日志](CHANGELOG.md)
 
 ## 测试
 
@@ -116,7 +115,20 @@ pip install -r requirements-dev.txt
 pytest -v
 ```
 
-测试覆盖样式生成、三种格式转换的端到端产物校验；PDF 引擎不可用时自动跳过对应用例。CI 在 Ubuntu / Windows 双平台运行。
+测试覆盖样式生成、三种格式转换的端到端产物校验；PDF 测试需要本机 XeLaTeX，CI 上自动跳过。CI 在 Ubuntu / Windows 双平台运行。
+
+## 开发约定
+
+- 样式改动只落在 `make_reference_docx.py` / `docx_lib.py`（可代码复现，不提交二进制模板）；
+  新参数先写进 `references/params.md` 再改脚本。
+- 新功能必须带测试（产物断言写入 `temp/pytest/`）；`pytest -v` 全绿再提交。
+- 行为变化同步三处：`SKILL.md`（路由/规范）、`references/troubleshooting.md`（故障）、`CHANGELOG.md`。
+
+## 安全注意
+
+不要转换不受信任来源的 Markdown 后直接打开产物：pandoc 默认保留 raw HTML/LaTeX，
+如需隔离，加 `--reader markdown-raw_html-raw_tex` 禁用原始内容透传。
+转换全程本地完成，文档内容不经任何网络服务（网络图片为用户显式行为）。
 
 ## Roadmap
 
