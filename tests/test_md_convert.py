@@ -91,6 +91,14 @@ class TestReferenceDocx:
         assert round(sec.page_width.mm) == 210
         assert round(sec.page_height.mm) == 297
 
+    def test_compact_single_spacing(self, ref):
+        """表格/列表文字：单倍行距、无首行缩进（Compact 样式）。"""
+        doc = Document(str(ref))
+        compact = doc.styles["Compact"]
+        assert compact.paragraph_format.line_spacing == 1.0
+        ind = compact.element.pPr.find(qn("w:ind"))
+        assert ind is not None and ind.get(qn("w:firstLineChars")) == "0"
+
     def test_no_theme_font_override(self, ref):
         """主题属性优先于显式字体，受控样式必须清除；主题本身也应改为规范字体。"""
         doc = Document(str(ref))
@@ -124,6 +132,13 @@ class TestConvertDocx:
     def test_tables_threeline(self, docx_out):
         doc = Document(str(docx_out))
         assert len(doc.tables) == 2
+        # 单元格段落必须用 Compact 样式（单倍行距），不得回退到 1.5 倍的 Body Text
+        for tbl in doc.tables:
+            for row in tbl.rows:
+                for cell in row.cells:
+                    for p in cell.paragraphs:
+                        assert p.style.name == "Compact", \
+                            f"单元格段落样式异常：{p.style.name}"
         borders = doc.tables[0]._tbl.tblPr.find(qn("w:tblBorders"))
         assert borders is not None
         assert borders.find(qn("w:top")).get(qn("w:val")) == "single"
