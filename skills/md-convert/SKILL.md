@@ -25,11 +25,13 @@ description: 高质量把 Markdown 转换为 Word、PDF、HTML。用户要求"md
 
 ## ③ 组装命令并执行
 
-按格式运行对应脚本（在技能目录内；参数与命令形态见 `references/params.md`）：
+按格式运行对应脚本（在技能目录内执行）：
 
 - docx → `scripts/to_docx.py`
-- pdf → `scripts/to_pdf.py`（XeLaTeX；学术论文见 `references/scenario-academic.md`）
+- pdf → `scripts/to_pdf.py`（XeLaTeX 引擎）
 - html → `scripts/to_html.py`
+
+命令形态与全部参数：见 `references/params.md`（调整排版前先读）。
 
 ## ④ 验收与交付
 
