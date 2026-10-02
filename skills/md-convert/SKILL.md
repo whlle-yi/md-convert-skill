@@ -18,7 +18,7 @@ description: 高质量把 Markdown 转换为 Word、PDF、HTML。用户要求"md
 按顺序判断，本步结束时必须明确两件事：**产出格式集合（≥1 项）** 与 **是否学术论文场景**，供 ③④ 使用。
 
 1. **场景判断（开放清单，随需求增长）**：
-   - 命中 **学术论文场景**（期刊 / 学位 / 竞赛 / 技术报告）→ 仅 PDF（XeLaTeX），**先读 `references/scenario-academic.md`** 按其规则执行；
+   - 命中 **学术论文场景**（期刊 / 学位 / 竞赛 / 技术报告）→ 产出定为 **仅 PDF（XeLaTeX）**；其专属规则在 `references/scenario-academic.md`，于 ③ 执行该格式时读取；
    - 未命中任何场景 → 走下方通用流程。新场景出现时：新建 `references/scenario-*.md` 并在此清单登记。
 2. **非论文，用户已指明格式** → 按用户指定的执行，不追问；
 3. **非论文，格式未指明** → 询问一次（PDF / Word / HTML / 多种组合），**推荐 PDF**；用户此前明确表示不想被问 → 跳过询问，直接 PDF，交付时说明可补产其他格式。
@@ -30,7 +30,7 @@ description: 高质量把 Markdown 转换为 Word、PDF、HTML。用户要求"md
 按格式运行对应脚本（在技能目录内执行）：
 
 - docx → `scripts/to_docx.py`
-- pdf → `scripts/to_pdf.py`（XeLaTeX 引擎）
+- pdf → `scripts/to_pdf.py`（XeLaTeX 引擎）；**论文场景：先读 `references/scenario-academic.md`** 按其规则执行
 - html → `scripts/to_html.py`
 
 命令形态与全部参数：见 `references/params.md`（调整排版前先读）。
