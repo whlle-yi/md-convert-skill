@@ -131,6 +131,7 @@ pytest -v
 
 ## Roadmap
 
+- [ ] 技术文档场景（`scenario-tech.md`：代码高亮默认开、HTML 优先）
 - [ ] PPTX 输出（配合大纲结构）
 - [ ] 自定义样式档案（配置文件式 `--style academic/thesis/...`）
 - [ ] Word 页眉页脚与封面模板
